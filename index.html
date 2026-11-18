@@ -595,9 +595,9 @@
          pos0（形成前散开）/ pos1（树形态）/ pos2（手势散开云团）
          color / size / phase / delay
          ============================================================ */
-      var TREE_H = 2.92, BASE_Y = -0.34, BASE_R = 1.52, TIP_Y = BASE_Y + TREE_H;
+      var TREE_H = 3.55, BASE_Y = -0.34, BASE_R = 1.08, TIP_Y = BASE_Y + TREE_H;
       function radiusAt(h) {
-        var r = BASE_R * Math.pow(Math.max(0, 1 - h), 0.74);
+        var r = BASE_R * Math.pow(Math.max(0, 1 - h), 0.8);
         if (h > 0.90) r *= 1 - (h - 0.90) / 0.10 * 0.55; // 树尖收锐
         return r;
       }
@@ -613,13 +613,21 @@
       function cloudTarget() {
         var th = Math.random() * Math.PI * 2;
         var ph = Math.acos(rand(-1, 1));
-        var r = rand(2.25, 3.65);
+        var r = rand(2.3, 3.85);
         var sp = Math.sin(ph);
         return [
           Math.cos(th) * sp * r,
-          1.45 + Math.cos(ph) * r * 0.82,
+          1.55 + Math.cos(ph) * r * 0.82,
           Math.sin(th) * sp * r
         ];
+      }
+      // 形成动画起点：以树心为中心的扩散球壳，粒子从壳上螺旋汇聚成树
+      function shellStart() {
+        var th = Math.random() * Math.PI * 2;
+        var ph = Math.acos(rand(-1, 1));
+        var r = rand(3.0, 5.0);
+        var sp = Math.sin(ph);
+        return [Math.cos(th) * sp * r, 1.5 + Math.cos(ph) * r * 0.8, Math.sin(th) * sp * r];
       }
       function makeSystem(n) {
         return {
@@ -646,7 +654,7 @@
       /* ----- 树叶：8 层柔和波浪裙边圆锥（层间重叠大、台阶柔化） ----- */
       function buildLeaves(count) {
         var sys = makeSystem(count), c = [0, 0, 0];
-        var TIERS = 8, tierSpan = TREE_H / TIERS;
+        var TIERS = 10, tierSpan = TREE_H / TIERS;
         // 按层表面积加权选层（下层更大）
         var weights = [], wSum = 0, i, t;
         for (i = 0; i < TIERS; i++) {
@@ -670,8 +678,10 @@
           var droop = 0.10 * smoothstep(0.78, 1.0, s) * (0.5 + rBot / BASE_R * 0.7);
           var y = tierTopY - s * tierH - droop;
           var ang = Math.random() * Math.PI * 2;
+          var vol = !rim && Math.random() < 0.38; // 内部体积粒子：填满树身，避免空心透光
           var rr = r * rand(0.80, 1.0); // 体积感：内层略暗
           if (rim) rr = r * rand(1.0, 1.04);
+          else if (vol) rr = r * (0.12 + 0.88 * Math.pow(Math.random(), 0.6));
           var p1 = [Math.cos(ang) * rr, y, Math.sin(ang) * rr];
           var h = clamp((y - BASE_Y) / TREE_H, 0, 1);
           gradColor(h, c);
@@ -680,14 +690,17 @@
           if (s > 0.78) bright *= 1.3; // 裙边更亮
           if (rim) bright *= 1.45;
           bright *= rand(0.82, 1.12);
+          if (vol) bright *= 0.78;
           var col = [c[0] * bright, c[1] * bright, c[2] * bright];
           var size = rand(0.011, 0.022); // 细密小点，闪粉质感
+          if (vol) size = rand(0.010, 0.019);
           if (Math.random() < 0.05) { // 近白粉色闪点
             var fb = rand(1.15, 1.5);
             col = [1.02 * fb, 0.88 * fb, 0.97 * fb];
             size = rand(0.02, 0.03);
           }
-          setP(sys, i, scattered(p1, 1.75, 2.6, 0.55), p1, cloudTarget(), col, size);
+          setP(sys, i, shellStart(), p1, cloudTarget(), col, size);
+          sys.delay[i] = 0.14 + h * 0.34 + Math.random() * 0.05; // 下层先落位、上层后到
         }
         return sys;
       }
@@ -702,7 +715,8 @@
           var p1 = [Math.cos(ang) * rr, y, Math.sin(ang) * rr];
           var t = (y + 0.38) / 0.6;
           var col = [lerp(0.55, 0.85, t) * 0.85, lerp(0.22, 0.42, t) * 0.8, lerp(0.42, 0.62, t) * 0.85];
-          setP(sys, i, scattered(p1, 1.8, 2.4, 0.4), p1, cloudTarget(), col, rand(0.016, 0.028));
+          setP(sys, i, shellStart(), p1, cloudTarget(), col, rand(0.016, 0.028));
+          sys.delay[i] = 0.10 + Math.random() * 0.12;
         }
         return sys;
       }
@@ -712,12 +726,13 @@
         var sys = makeSystem(discCount);
         for (var i = 0; i < discCount; i++) {
           var ang = Math.random() * Math.PI * 2;
-          var rr = 2.9 * Math.sqrt(Math.random());
+          var rr = 2.5 * Math.sqrt(Math.random());
           var p1 = [Math.cos(ang) * rr, -0.375 + rand(-0.008, 0.014), Math.sin(ang) * rr];
-          var fade = 1 - rr / 3.1;
+          var fade = 1 - rr / 2.7;
           var b = rand(0.15, 0.7) * (0.2 + fade * 0.8);
           var col = [1.0 * b, 0.78 * b, 0.92 * b];
           setP(sys, i, scattered(p1, 1.6, 2.2, 0.5), p1, p1, col, rand(0.010, 0.020));
+          sys.delay[i] = Math.random() * 0.18;
         }
         return sys;
       }
@@ -725,7 +740,7 @@
       /* ----- 树基轨道环：3 圈倾斜的细椭圆环（土星环式，淡粉白、低亮度） ----- */
       function buildRings(count) {
         var sys = makeSystem(count);
-        var radii = [1.95, 2.40, 2.85];
+        var radii = [1.5, 1.9, 2.3];
         var per = [0.28, 0.34, 0.38]; // 按周长分配
         for (var i = 0; i < count; i++) {
           var pick = Math.random(), ri = radii[2], acc = 0;
@@ -737,6 +752,7 @@
           var b = rand(0.45, 0.95);
           var col = [1.02 * b, 0.84 * b, 0.96 * b];
           setP(sys, i, scattered(p1, 1.6, 2.2, 0.5), p1, p1, col, rand(0.010, 0.018));
+          sys.delay[i] = 0.06 + Math.random() * 0.14;
         }
         return sys;
       }
@@ -753,7 +769,8 @@
           var p1 = [Math.cos(ang) * r, y, Math.sin(ang) * r];
           var b = rand(1.0, 1.6);
           var col = [1.05 * b, 0.72 * b, 0.92 * b];
-          setP(sys, i, scattered(p1, 1.75, 2.6, 0.55), p1, cloudTarget(), col, rand(0.02, 0.034));
+          setP(sys, i, shellStart(), p1, cloudTarget(), col, rand(0.02, 0.034));
+          sys.delay[i] = 0.24 + t * 0.34 + Math.random() * 0.03; // 光带自下而上最后绕完
         }
         return sys;
       }
@@ -788,10 +805,8 @@
             lerp(0.94, 1.24, core),
             lerp(1.02, 1.28, core)
           ];
-          var p0 = [x * rand(1.8, 2.6) + rand(-0.5, 0.5),
-                    STAR_CY + y * rand(1.8, 2.6) + rand(-0.4, 0.7),
-                    z * 2 + rand(-0.5, 0.5)];
-          setP(sys, i, p0, p1, cloudTarget(), col, rand(0.014, 0.026));
+          setP(sys, i, shellStart(), p1, cloudTarget(), col, rand(0.014, 0.026));
+          sys.delay[i] = 0.76 + Math.random() * 0.06; // 树顶星最后点亮
         }
         return sys;
       }
@@ -811,9 +826,9 @@
           var col = pick < 0.55 ? cWhite : pick < 0.78 ? cLight : pick < 0.92 ? cPink : cDeep;
           var hero = Math.random() < 0.045;
           var size = hero ? rand(0.15, 0.21) : rand(0.05, 0.095);
-          setP(sys, i, scattered(p1, 1.8, 2.5, 0.5), p1, cloudTarget(), col.slice(), size);
+          setP(sys, i, shellStart(), p1, cloudTarget(), col.slice(), size);
           sys.phase[i] = rand(0, Math.PI * 2);
-          sys.delay[i] = Math.random() * 0.4;
+          sys.delay[i] = 0.20 + h * 0.38 + Math.random() * 0.05;
         }
         return sys;
       }
@@ -825,7 +840,7 @@
         for (var i = 0; i < count; i++) {
           var ang = Math.random() * Math.PI * 2;
           var rr = rand(0.4, 3.1);
-          var p1 = [Math.cos(ang) * rr, rand(-0.3, 3.3), Math.sin(ang) * rr];
+          var p1 = [Math.cos(ang) * rr, rand(-0.3, 3.9), Math.sin(ang) * rr];
           var col = palette[(Math.random() * palette.length) | 0];
           var b = rand(0.25, 0.6);
           setP(sys, i, p1, p1, p1, [col[0] * b, col[1] * b, col[2] * b], rand(0.012, 0.026));
@@ -892,7 +907,7 @@
           var th = Math.random() * Math.PI * 2;
           var vx = Math.cos(th), vy = Math.sin(th) * 0.85, vz = rand(-0.3, 0.3);
           var vl = Math.hypot(vx, vy, vz) || 1;
-          var L = rand(1.3, 3.6);
+          var L = rand(1.8, 5.4);
           for (var e = 0; e < 2; e++) {
             dir.set([vx / vl, vy / vl, vz / vl], (i * 2 + e) * 3);
             end[i * 2 + e] = e;
@@ -901,10 +916,26 @@
         }
         var cPos = new Float32Array(CORE_N * 3), cSize = new Float32Array(CORE_N);
         for (var j = 0; j < CORE_N; j++) {
-          cPos.set([rand(-0.05, 0.05), 1.35 + rand(-0.05, 0.05), rand(-0.05, 0.05)], j * 3);
+          cPos.set([rand(-0.05, 0.05), 1.5 + rand(-0.05, 0.05), rand(-0.05, 0.05)], j * 3);
           cSize[j] = rand(1.2, 2.6);
         }
         return { dir: dir, end: end, len: len, cPos: cPos, cSize: cSize };
+      }
+
+      /* ----- 开场扩散球壳：光核之后粒子先涨成一层球壳，再螺旋汇聚成树 ----- */
+      function buildShell(count) {
+        var dir = new Float32Array(count * 3), col = new Float32Array(count * 3), size = new Float32Array(count);
+        for (var i = 0; i < count; i++) {
+          var th = Math.random() * Math.PI * 2;
+          var ph = Math.acos(rand(-1, 1));
+          var sp = Math.sin(ph);
+          dir.set([Math.cos(th) * sp, Math.cos(ph), Math.sin(th) * sp], i * 3);
+          var b = rand(0.5, 1.1);
+          if (Math.random() < 0.8) col.set([1.02 * b, 0.80 * b, 0.94 * b], i * 3);
+          else col.set([0.92 * b, 0.82 * b, 1.05 * b], i * 3);
+          size[i] = rand(0.02, 0.05);
+        }
+        return { n: count, dir: dir, col: col, size: size };
       }
 
       /* ============================================================
@@ -978,6 +1009,10 @@
         "  float st = clamp(uScatter*1.6 - aDelay*0.75, 0.0, 1.0);",
         "  st = st*st*(3.0-2.0*st);",
         "  pos = mix(pos, aPos2, st);",
+        // 散开/聚合途中绕轴甩一圈：聚合时即是快速版的螺旋汇聚，不是直线 lerp
+        "  float swg = sin(st*3.14159)*0.85;",
+        "  float cg = cos(swg), sg = sin(swg);",
+        "  pos.xz = mat2(cg,-sg,sg,cg)*pos.xz;",
         "  float swA = st * uTime * 0.05;",
         "  float cw = cos(swA), sw = sin(swA);",
         "  pos.xz = mat2(cw,-sw,sw,cw)*pos.xz;"
@@ -993,17 +1028,20 @@
         "attribute float aDelay;",
         "uniform mat4 uProj;",
         "uniform mat4 uMV;",
-        "uniform float uTime, uForm, uScatter, uScale, uSizeMul, uBrightMul, uSway, uTwinkle, uPulse, uAlpha;",
+        "uniform float uTime, uForm, uScatter, uScale, uSizeMul, uBrightMul, uSway, uTwinkle, uPulse, uAlpha, uTravel, uSwirl, uArc;",
         "varying vec3 vColor;",
         "varying float vA;",
         "void main(){",
-        "  float t = clamp((uForm - aDelay) / max(1.0 - aDelay, 0.001), 0.0, 1.0);",
-        "  t = t*t*(3.0-2.0*t);",
-        "  vec3 pos = mix(aPos0, aPos1, t);",
+        "  float t = clamp((uForm - aDelay) / uTravel, 0.0, 1.0);",
+        "  float te = t*t*(3.0-2.0*t);",
+        "  vec3 pos = mix(aPos0, aPos1, te);",
         SCATTER_SNIPPET,
-        "  float ang = (1.0-t)*2.4;",
+        // 螺旋汇聚：飞行前段绕树轴大角度旋转，随落位衰减到 0
+        "  float ang = pow(1.0-te, 1.6) * uSwirl;",
         "  float ca = cos(ang), sa = sin(ang);",
         "  pos.xz = mat2(ca,-sa,sa,ca)*pos.xz;",
+        // 中途上抛弧线：粒子先扬起再落回槽位
+        "  pos.y += sin(te*3.14159) * uArc * (0.35 + 0.65*fract(aPhase*0.371));",
         "  pos.x += sin(uTime*0.7 + aPhase)*uSway;",
         "  pos.z += cos(uTime*0.55 + aPhase*1.31)*uSway;",
         "  pos.y += sin(uTime*0.5 + aPhase*0.7)*uSway*0.6;",
@@ -1041,17 +1079,18 @@
         "attribute float aDelay;",
         "uniform mat4 uProj;",
         "uniform mat4 uMV;",
-        "uniform float uTime, uForm, uScatter, uScale;",
+        "uniform float uTime, uForm, uScatter, uScale, uTravel, uSwirl, uArc;",
         "varying vec3 vColor;",
         "varying float vTw;",
         "void main(){",
-        "  float t = clamp((uForm - aDelay) / max(1.0 - aDelay, 0.001), 0.0, 1.0);",
-        "  t = t*t*(3.0-2.0*t);",
-        "  vec3 pos = mix(aPos0, aPos1, t);",
+        "  float t = clamp((uForm - aDelay) / uTravel, 0.0, 1.0);",
+        "  float te = t*t*(3.0-2.0*t);",
+        "  vec3 pos = mix(aPos0, aPos1, te);",
         SCATTER_SNIPPET,
-        "  float ang = (1.0-t)*2.4;",
+        "  float ang = pow(1.0-te, 1.6) * uSwirl;",
         "  float ca = cos(ang), sa = sin(ang);",
         "  pos.xz = mat2(ca,-sa,sa,ca)*pos.xz;",
+        "  pos.y += sin(te*3.14159) * uArc * (0.35 + 0.65*fract(aPhase*0.371));",
         "  float pulse = 0.5 + 0.5*sin(uTime*(0.9+fract(aPhase*0.377)*1.6) + aPhase*9.0);",
         "  vTw = (0.10 + 0.90*pulse*pulse*pulse) * t;",
         "  vColor = aColor;",
@@ -1092,7 +1131,7 @@
         "  float e = 1.0 - pow(1.0 - uT, 3.0);",
         "  float head = mix(0.15, aLen, e);",
         "  float dist = mix(head*0.45, head, aEnd);",
-        "  vec3 pos = vec3(0.0, 1.35, 0.0) + aDir * dist;",
+        "  vec3 pos = vec3(0.0, 1.5, 0.0) + aDir * dist;",
         "  vA = (1.0 - uT) * (0.30 + 0.70*aEnd);",
         "  gl_Position = uProj * uMV * vec4(pos, 1.0);",
         "}"
@@ -1124,13 +1163,40 @@
 
       var CORE_FRAG = [
         "precision mediump float;",
+        "uniform vec3 uColor;",
         "varying float vA;",
         "void main(){",
         "  vec2 q = gl_PointCoord - 0.5;",
         "  float d2 = dot(q,q)*4.0;",
         "  float a = (exp(-d2*4.0) + exp(-d2*1.4)*0.4) * vA;",
         "  if(a < 0.004) discard;",
-        "  gl_FragColor = vec4(vec3(1.05, 0.30, 0.72) * a, 1.0);",
+        "  gl_FragColor = vec4(uColor * a, 1.0);",
+        "}"
+      ].join("\n");
+
+      // 开场球壳：点从树心向外涨成球壳并缓缓旋转，随后淡出（汇聚交给树粒子本身）
+      var SHELL_VERT = [
+        "attribute vec3 aDir;",
+        "attribute vec3 aColor;",
+        "attribute float aSize;",
+        "uniform mat4 uProj;",
+        "uniform mat4 uMV;",
+        "uniform float uT, uScale;",
+        "varying vec3 vColor;",
+        "varying float vA;",
+        "void main(){",
+        "  float e = 1.0 - pow(1.0 - uT, 2.2);",
+        "  float r = mix(0.25, 4.9, e);",
+        "  float ang = uT * 1.1;",
+        "  float ca = cos(ang), sa = sin(ang);",
+        "  vec3 d = aDir;",
+        "  d.xz = mat2(ca,-sa,sa,ca)*d.xz;",
+        "  vec3 pos = vec3(0.0, 1.5, 0.0) + d * vec3(r, r*0.82, r);",
+        "  vColor = aColor;",
+        "  vA = smoothstep(0.0, 0.12, uT) * (1.0 - smoothstep(0.62, 1.0, uT)) * 0.85;",
+        "  vec4 mv = uMV * vec4(pos, 1.0);",
+        "  gl_Position = uProj * mv;",
+        "  gl_PointSize = clamp(aSize * uScale / max(0.1,-mv.z), 1.0, 64.0);",
         "}"
       ].join("\n");
 
@@ -1236,6 +1302,7 @@
       var spProg = makeProgram(SP_VERT, SP_FRAG, PT_ATTRS);
       var burstProg = makeProgram(BURST_VERT, BURST_FRAG, ["aDir", "aEnd", "aLen"]);
       var coreProg = makeProgram(CORE_VERT, CORE_FRAG, ["aPos", "aSize"]);
+      var shellProg = makeProgram(SHELL_VERT, PT_FRAG, ["aDir", "aColor", "aSize"]);
       var fwProg = makeProgram(FW_VERT, FW_FRAG, ["aOrigin", "aVel", "aColor", "aStart", "aLife", "aSize"]);
       var photoProg = makeProgram(PHOTO_VERT, PHOTO_FRAG, ["aXY", "aUV"]);
 
@@ -1263,17 +1330,17 @@
       }
 
       var isCoarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
-      var leafCount = isCoarse ? 42000 : 58000;
+      var leafCount = isCoarse ? 62000 : 90000;
 
       var leaves = upload(buildLeaves(leafCount));
       var trunk = upload(buildTrunk(1000));
       var ground = upload(buildGround(2600));
       var rings = upload(buildRings(2600));
-      var ribbon = upload(buildRibbon(3400));
-      var topper = upload(buildTopper(2400));
+      var ribbon = upload(buildRibbon(4200));
+      var topper = upload(buildTopper(2600));
       var dust = upload(buildDust(850));
       var stars = upload(buildStars(750));
-      var sparkles = upload(buildSparkles(900));
+      var sparkles = upload(buildSparkles(1150));
 
       var fwData = buildFireworks();
       var fwBufs = fwData.data.map(function (arr) {
@@ -1293,6 +1360,18 @@
       var burstBufs = [makeBuf(burstData.dir), makeBuf(burstData.end), makeBuf(burstData.len)];
       var coreBufs = [makeBuf(burstData.cPos), makeBuf(burstData.cSize)];
 
+      var shellData = buildShell(isCoarse ? 620 : 950);
+      var shellBufs = [makeBuf(shellData.dir), makeBuf(shellData.col), makeBuf(shellData.size)];
+
+      // 树顶星点火闪光：星心处的一簇大辉光点，形成末段短暂爆亮
+      var FLASH_N = 14;
+      var flashPos = new Float32Array(FLASH_N * 3), flashSize = new Float32Array(FLASH_N);
+      for (var fqi = 0; fqi < FLASH_N; fqi++) {
+        flashPos.set([rand(-0.03, 0.03), STAR_CY + rand(-0.03, 0.03), rand(-0.03, 0.03)], fqi * 3);
+        flashSize[fqi] = rand(1.8, 3.2);
+      }
+      var flashBufs = [makeBuf(flashPos), makeBuf(flashSize)];
+
       var bgBuf = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, bgBuf);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
@@ -1310,7 +1389,7 @@
          全部在本机生成纹理，不上传、不保存
          ============================================================ */
       var MAX_PHOTOS = 24;
-      var PHOTO_W = 0.20, PHOTO_H = 0.25; // 世界单位（512×640 比例）— 约为原尺寸的 55%，作小挂饰点缀树面，不抢粒子树主体
+      var PHOTO_W = 0.07, PHOTO_H = 0.0875; // 世界单位（512×640 比例）— 散开时的小贴片，约为早期大卡的 1/3，只作粒子云里的微型缩略图
       var photos = []; // {tex, src, cap, treePos, angle, scatterPos, delay, tilt, scale, _sx, _sy, _vis}
 
       function makeTexture(source) {
@@ -1418,8 +1497,10 @@
           var r = radiusAt(h) * 1.03 + 0.05;
           ph.treePos = [Math.cos(a) * r, BASE_Y + h * TREE_H + 0.04, Math.sin(a) * r];
           ph.angle = a;
-          var ra = (i / Math.max(1, N)) * Math.PI * 2 + 0.6;
-          ph.scatterPos = [Math.cos(ra) * 2.35, 1.5 + Math.sin(i * 1.7) * 0.55, Math.sin(ra) * 2.35];
+          // 散开位置：随机散布在粒子云团里，不再排成整齐的环
+          var ra = Math.random() * Math.PI * 2;
+          var rsc = rand(1.5, 3.3);
+          ph.scatterPos = [Math.cos(ra) * rsc, rand(0.15, 3.15), Math.sin(ra) * rsc];
           ph.delay = (i % 8) / 8 * 0.5;
           ph.tilt = rand(-0.16, 0.16);
           ph.scale = rand(0.92, 1.1);
@@ -1656,13 +1737,14 @@
       function cycleFocus() {
         if (!photos.length) return;
         if (focusIndex < 0) {
-          // 首选离屏幕中心最近的可见照片
-          var best = 0, bd = 1e9, cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+          // 首选离屏幕中心最近的可见照片；聚成树时照片不可见，无可放大
+          var best = -1, bd = 1e9, cx = window.innerWidth / 2, cy = window.innerHeight / 2;
           for (var i = 0; i < photos.length; i++) {
             if (!photos[i]._vis) continue;
             var d = Math.hypot(photos[i]._sx - cx, photos[i]._sy - cy);
             if (d < bd) { bd = d; best = i; }
           }
+          if (best < 0) { toast("先散开，照片会以小图出现在粒子云里，点任意一张可放大"); return; }
           openFocus(best);
         } else {
           openFocus((focusIndex + 1) % photos.length);
@@ -1689,6 +1771,13 @@
       var _tv = [0, 0, 0];
       function drawPhotos(viewM, eye, yawEff, time) {
         if (!photos.length) return;
+        // 可见性规则：聚成树时照片完全不显示；只在散开（接近完成）时以小贴片出现，
+        // 聚合过程中随 scatterCur 下降螺旋收进树里并缩小消失
+        var photoVis = smoothstep(0.30, 0.72, scatterCur);
+        if (photoVis <= 0.01) {
+          for (var vi = 0; vi < photos.length; vi++) photos[vi]._vis = false;
+          return;
+        }
         var camRight = [viewM[0], viewM[4], viewM[8]];
         var camUp = [viewM[1], viewM[5], viewM[9]];
         gl.useProgram(photoProg.pr);
@@ -1709,6 +1798,13 @@
           var lt = clamp(scatterCur * 1.5 - ph.delay * 0.5, 0, 1);
           lt = lt * lt * (3 - 2 * lt);
           var lp = vLerp(ph.treePos, ph.scatterPos, lt);
+          // 进出途中绕树轴螺旋：散开时旋出、聚合时旋入树身
+          var spinA = (1 - lt) * 2.4;
+          if (spinA) {
+            var csx = Math.cos(spinA), snx = Math.sin(spinA);
+            var lx = lp[0] * csx - lp[2] * snx, lz = lp[0] * snx + lp[2] * csx;
+            lp[0] = lx; lp[2] = lz;
+          }
           lp[1] += Math.sin(time * 0.8 + i * 1.37) * 0.05 * lt; // 散开时轻轻漂浮
           // 模型旋转（与粒子同一套 yaw + 横向偏移）
           rotY(lp, yawEff, _tv);
@@ -1736,9 +1832,9 @@
           }
           // 背向镜头的照片淡出，避免穿帮
           var facing = nrm[0] * toCam[0] + nrm[1] * toCam[1] + nrm[2] * toCam[2];
-          var alpha = clamp(smoothstep(-0.15, 0.25, facing), 0, 1) * 0.98;
+          var alpha = clamp(smoothstep(-0.15, 0.25, facing), 0, 1) * 0.98 * photoVis;
           if (alpha < 0.02) { ph._vis = false; continue; }
-          var M = basisMatrix(right, upv, nrm, wp, PHOTO_W * ph.scale, PHOTO_H * ph.scale);
+          var M = basisMatrix(right, upv, nrm, wp, PHOTO_W * ph.scale * photoVis, PHOTO_H * ph.scale * photoVis);
           var MVP = mMul(view.proj, mMul(viewM, M));
           gl.uniformMatrix4fv(U.uMVP, false, MVP);
           gl.uniform1f(U.uAlpha, alpha);
@@ -1748,7 +1844,7 @@
           var cx = MVP[12] / MVP[15], cy = MVP[13] / MVP[15];
           ph._sx = (cx * 0.5 + 0.5) * window.innerWidth;
           ph._sy = (0.5 - cy * 0.5) * window.innerHeight;
-          ph._vis = alpha > 0.3;
+          ph._vis = alpha > 0.25 && photoVis > 0.5;
         }
         gl.disableVertexAttribArray(0);
         gl.disableVertexAttribArray(1);
@@ -1760,13 +1856,13 @@
          相机 / 交互 / 动画状态
          ============================================================ */
       var FOV = 36 * Math.PI / 180;
-      var view = { w: 1, h: 1, dpr: 1, proj: null, scaleF: 1, offX: 0, targetY: 1.40, halo: [0.58, 0.70], baseDist: 8.2 };
+      var view = { w: 1, h: 1, dpr: 1, proj: null, scaleF: 1, offX: 0, targetY: 1.52, halo: [0.585, 0.80], baseDist: 8.0 };
 
       var zoomF = 1.0, elevation = 0.26;
       var yaw = 0, pitchDrag = 0;
       var autoRotate = !REDUCED;
       var formStart = performance.now();
-      var FORM_MS = REDUCED ? 1 : 2600;
+      var FORM_MS = REDUCED ? 1 : 5000;
 
       // 手势形态状态：0 = 树，1 = 散开
       var scatterCur = 0, scatterTarget = 0;
@@ -1784,12 +1880,12 @@
         view.proj = mPerspective(FOV, aspect, 0.1, 140);
         view.scaleF = view.h / (2 * Math.tan(FOV / 2));
         if (aspect > 1.12) {
-          view.offX = 0.55; view.targetY = 1.40; view.halo = [0.585, 0.70];
-          view.baseDist = 8.2;
+          view.offX = 0.55; view.targetY = 1.52; view.halo = [0.585, 0.80];
+          view.baseDist = 8.0;
         } else {
-          view.offX = 0; view.targetY = 1.52; view.halo = [0.5, 0.60];
+          view.offX = 0; view.targetY = 1.62; view.halo = [0.5, 0.68];
           // 竖屏横向视野窄：按树宽反推距离，保证整棵树 + 地面光环入框
-          view.baseDist = Math.max(8.2, 2.3 / (Math.tan(FOV / 2) * aspect));
+          view.baseDist = Math.max(8.0, 2.4 / (Math.tan(FOV / 2) * aspect));
         }
       }
       window.addEventListener("resize", resize);
@@ -1872,7 +1968,7 @@
       });
       document.getElementById("btnReplay").addEventListener("click", function () {
         formStart = performance.now();
-        FORM_MS = 2600;
+        FORM_MS = 5000;
         doAssemble();
       });
 
@@ -2450,9 +2546,31 @@
         gl.uniform1f(U.uTwinkle, opts.twinkle || 0);
         gl.uniform1f(U.uPulse, opts.pulse || 1);
         gl.uniform1f(U.uAlpha, opts.alpha == null ? 1 : opts.alpha);
+        gl.uniform1f(U.uTravel, opts.travel || 0.40);
+        gl.uniform1f(U.uSwirl, opts.swirl == null ? 5.2 : opts.swirl);
+        gl.uniform1f(U.uArc, opts.arc == null ? 0.5 : opts.arc);
         bindSystem(ptProg, up);
         gl.drawArrays(gl.POINTS, 0, up.n);
         unbindSystem();
+      }
+
+      // 辉光点（开场光核 / 树顶星闪光共用 coreProg）
+      function drawGlowPoints(bufs, count, mv, alpha, r, g, b) {
+        gl.useProgram(coreProg.pr);
+        gl.uniformMatrix4fv(coreProg.U.uProj, false, view.proj);
+        gl.uniformMatrix4fv(coreProg.U.uMV, false, mv);
+        gl.uniform1f(coreProg.U.uScale, view.scaleF);
+        gl.uniform1f(coreProg.U.uA, alpha);
+        gl.uniform3f(coreProg.U.uColor, r, g, b);
+        gl.bindBuffer(gl.ARRAY_BUFFER, bufs[0]);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, bufs[1]);
+        gl.enableVertexAttribArray(1);
+        gl.vertexAttribPointer(1, 1, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.POINTS, 0, count);
+        gl.disableVertexAttribArray(0);
+        gl.disableVertexAttribArray(1);
       }
 
       var lastT = performance.now();
@@ -2462,8 +2580,8 @@
         lastT = now;
         var time = now / 1000;
         var form = clamp((now - formStart) / FORM_MS, 0, 1);
-        // 形态插值（约 1 秒平滑过渡）
-        scatterCur += (scatterTarget - scatterCur) * (1 - Math.exp(-dt * 2.6));
+        // 形态插值（约 1.5–2 秒平滑过渡，聚合带螺旋汇聚）
+        scatterCur += (scatterTarget - scatterCur) * (1 - Math.exp(-dt * 2.1));
         if (Math.abs(scatterTarget - scatterCur) < 0.001) scatterCur = scatterTarget;
         // 手部跟随平滑
         var follow = 1 - Math.exp(-dt * 4);
@@ -2503,35 +2621,46 @@
         /* 背景星 */
         drawPoints(stars, viewM, { time: time, form: 1, scatter: 0, twinkle: 0.45, bright: 0.9 });
 
-        /* 开场星爆：品红光核 + 放射线条（形成动画最初约 0.95 秒） */
-        var burstT = clamp((now - formStart) / 950, 0, 1);
-        if (burstT < 1 && !REDUCED) {
-          gl.useProgram(burstProg.pr);
-          gl.uniformMatrix4fv(burstProg.U.uProj, false, view.proj);
-          gl.uniformMatrix4fv(burstProg.U.uMV, false, mvTop);
-          gl.uniform1f(burstProg.U.uT, burstT);
-          var bSizes = [3, 1, 1];
-          for (var bi = 0; bi < 3; bi++) {
-            gl.bindBuffer(gl.ARRAY_BUFFER, burstBufs[bi]);
-            gl.enableVertexAttribArray(bi);
-            gl.vertexAttribPointer(bi, bSizes[bi], gl.FLOAT, false, 0, 0);
+        /* 开场序列（约 2.3 秒）：品红光核脉动 → 放射线条外爆 → 粒子球壳扩散，
+           随后树粒子用约 5 秒形成动画从球壳螺旋汇聚成树 */
+        var elapsedF = now - formStart;
+        if (!REDUCED) {
+          var coreT = elapsedF / 1150;
+          if (coreT < 1) {
+            var coreA = 0.85 * Math.pow(Math.sin(Math.PI * coreT), 1.4) * (0.92 + 0.08 * Math.sin(time * 26));
+            drawGlowPoints(coreBufs, CORE_N, mvTop, coreA, 1.05, 0.30, 0.72);
           }
-          gl.drawArrays(gl.LINES, 0, BURST_N * 2);
-          for (var bj = 0; bj < 3; bj++) gl.disableVertexAttribArray(bj);
-          gl.useProgram(coreProg.pr);
-          gl.uniformMatrix4fv(coreProg.U.uProj, false, view.proj);
-          gl.uniformMatrix4fv(coreProg.U.uMV, false, mvTop);
-          gl.uniform1f(coreProg.U.uScale, view.scaleF);
-          gl.uniform1f(coreProg.U.uA, (1 - burstT) * (1 - burstT) * 0.55);
-          gl.bindBuffer(gl.ARRAY_BUFFER, coreBufs[0]);
-          gl.enableVertexAttribArray(0);
-          gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-          gl.bindBuffer(gl.ARRAY_BUFFER, coreBufs[1]);
-          gl.enableVertexAttribArray(1);
-          gl.vertexAttribPointer(1, 1, gl.FLOAT, false, 0, 0);
-          gl.drawArrays(gl.POINTS, 0, CORE_N);
-          gl.disableVertexAttribArray(0);
-          gl.disableVertexAttribArray(1);
+          var burstT = clamp((elapsedF - 250) / 1750, 0, 1);
+          if (burstT > 0 && burstT < 1) {
+            gl.useProgram(burstProg.pr);
+            gl.uniformMatrix4fv(burstProg.U.uProj, false, view.proj);
+            gl.uniformMatrix4fv(burstProg.U.uMV, false, mvTop);
+            gl.uniform1f(burstProg.U.uT, burstT);
+            var bSizes = [3, 1, 1];
+            for (var bi = 0; bi < 3; bi++) {
+              gl.bindBuffer(gl.ARRAY_BUFFER, burstBufs[bi]);
+              gl.enableVertexAttribArray(bi);
+              gl.vertexAttribPointer(bi, bSizes[bi], gl.FLOAT, false, 0, 0);
+            }
+            gl.drawArrays(gl.LINES, 0, BURST_N * 2);
+            for (var bj = 0; bj < 3; bj++) gl.disableVertexAttribArray(bj);
+          }
+          var shellT = clamp((elapsedF - 700) / 1550, 0, 1);
+          if (shellT > 0 && shellT < 1) {
+            gl.useProgram(shellProg.pr);
+            gl.uniformMatrix4fv(shellProg.U.uProj, false, view.proj);
+            gl.uniformMatrix4fv(shellProg.U.uMV, false, mvTop);
+            gl.uniform1f(shellProg.U.uT, shellT);
+            gl.uniform1f(shellProg.U.uScale, view.scaleF);
+            var shSizes = [3, 3, 1];
+            for (var si = 0; si < 3; si++) {
+              gl.bindBuffer(gl.ARRAY_BUFFER, shellBufs[si]);
+              gl.enableVertexAttribArray(si);
+              gl.vertexAttribPointer(si, shSizes[si], gl.FLOAT, false, 0, 0);
+            }
+            gl.drawArrays(gl.POINTS, 0, shellData.n);
+            for (var sj = 0; sj < 3; sj++) gl.disableVertexAttribArray(sj);
+          }
         }
 
         /* 地面微光点 + 轨道环（散开时变淡） */
@@ -2539,22 +2668,34 @@
         drawPoints(rings, mvTree, { time: time, form: form, sizeMul: 1.1, bright: 0.8, twinkle: 0.35, alpha: 1 - 0.85 * scatterCur });
 
         /* 树干 */
-        drawPoints(trunk, mvTree, { time: time, form: form, twinkle: 0.1, bright: 0.9 });
+        drawPoints(trunk, mvTree, { time: time, form: form, twinkle: 0.1, bright: 0.9, travel: 0.42 });
 
         /* 树叶：大光晕 + 亮芯两遍（强闪烁出闪粉感，亮度压低避免过曝发白） */
-        drawPoints(leaves, mvTree, { time: time, form: form, sizeMul: 2.2, bright: 0.06, sway: 0.008, twinkle: 0.4 });
-        drawPoints(leaves, mvTree, { time: time, form: form, sizeMul: 1.0, bright: 0.52, sway: 0.008, twinkle: 0.75 });
+        drawPoints(leaves, mvTree, { time: time, form: form, sizeMul: 2.2, bright: 0.05, sway: 0.008, twinkle: 0.4, arc: 0.55 });
+        drawPoints(leaves, mvTree, { time: time, form: form, sizeMul: 1.0, bright: 0.44, sway: 0.008, twinkle: 0.75, arc: 0.55 });
+        /* 形成中的拖尾残影：同一批粒子以稍早的进度再画两遍淡影，读作流光拖尾 */
+        if (form < 1 && !REDUCED) {
+          drawPoints(leaves, mvTree, { time: time, form: Math.max(0, form - 0.045), sizeMul: 1.5, bright: 0.10, sway: 0.008, twinkle: 0.5, arc: 0.55 });
+          drawPoints(leaves, mvTree, { time: time, form: Math.max(0, form - 0.09), sizeMul: 1.9, bright: 0.05, sway: 0.008, twinkle: 0.5, arc: 0.55 });
+        }
 
         /* 螺旋光带：柔光晕 + 亮芯两遍 */
-        drawPoints(ribbon, mvTree, { time: time, form: form, sizeMul: 2.6, bright: 0.16, twinkle: 0.3 });
-        drawPoints(ribbon, mvTree, { time: time, form: form, sizeMul: 1.0, bright: 0.95, twinkle: 0.35 });
+        drawPoints(ribbon, mvTree, { time: time, form: form, sizeMul: 2.6, bright: 0.16, twinkle: 0.3, travel: 0.34, arc: 0.35 });
+        drawPoints(ribbon, mvTree, { time: time, form: form, sizeMul: 1.0, bright: 0.95, twinkle: 0.35, travel: 0.34, arc: 0.35 });
 
         /* 浮尘 */
         drawPoints(dust, mvTree, { time: time, form: 1, scatter: 0, sway: 0.05, twinkle: 0.4, bright: 0.55, alpha: 0.8 });
 
         /* 树顶四角星：大光晕 + 本体 */
-        drawPoints(topper, mvTopEff, { time: time, form: form, sizeMul: 4.5, bright: 0.10, pulse: topPulse, twinkle: 0.12 });
-        drawPoints(topper, mvTopEff, { time: time, form: form, sizeMul: 1.1, bright: 1.15, pulse: topPulse, twinkle: 0.12 });
+        drawPoints(topper, mvTopEff, { time: time, form: form, sizeMul: 4.5, bright: 0.10, pulse: topPulse, twinkle: 0.12, travel: 0.18, arc: 0.15 });
+        drawPoints(topper, mvTopEff, { time: time, form: form, sizeMul: 1.1, bright: 1.15, pulse: topPulse, twinkle: 0.12, travel: 0.18, arc: 0.15 });
+
+        /* 树顶星点火闪光：形成末段（约 4.8 秒）星心短暂爆亮一次 */
+        if (!REDUCED) {
+          var fx = (now - formStart - 4800) / 420;
+          var flashA = Math.exp(-fx * fx) * 0.85;
+          if (flashA > 0.01) drawGlowPoints(flashBufs, FLASH_N, mvTop, flashA, 1.25, 1.12, 1.18);
+        }
 
         /* 星芒 */
         gl.useProgram(spProg.pr);
@@ -2565,6 +2706,9 @@
         gl.uniform1f(SU.uForm, form);
         gl.uniform1f(SU.uScatter, scatterCur);
         gl.uniform1f(SU.uScale, view.scaleF);
+        gl.uniform1f(SU.uTravel, 0.38);
+        gl.uniform1f(SU.uSwirl, 5.2);
+        gl.uniform1f(SU.uArc, 0.4);
         bindSystem(spProg, sparkles);
         gl.drawArrays(gl.POINTS, 0, sparkles.n);
         unbindSystem();
