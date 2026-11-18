@@ -12,7 +12,7 @@
       body {
         margin: 0;
         overflow: hidden;
-        background: #04061a;
+        background: #0d0214;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
           "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
         -webkit-user-select: none;
@@ -46,19 +46,20 @@
         font-size: clamp(34px, 4.6vw, 66px);
         letter-spacing: 0.015em;
         line-height: 1.12;
+        color: #fff7fb;
         text-shadow:
-          0 0 14px rgba(190, 200, 255, 0.85),
-          0 0 42px rgba(150, 130, 255, 0.55),
-          0 0 90px rgba(255, 150, 220, 0.35);
+          0 0 14px rgba(255, 190, 225, 0.9),
+          0 0 42px rgba(255, 120, 200, 0.5),
+          0 0 90px rgba(190, 90, 255, 0.35);
       }
       .greeting p {
         margin: 16px 0 0 4px;
         font-size: clamp(14px, 1.5vw, 19px);
         letter-spacing: 0.06em;
-        color: rgba(238, 240, 255, 0.95);
+        color: rgba(253, 238, 248, 0.96);
         text-shadow:
-          0 0 10px rgba(180, 195, 255, 0.8),
-          0 0 30px rgba(150, 130, 255, 0.5);
+          0 0 10px rgba(255, 180, 220, 0.85),
+          0 0 30px rgba(230, 110, 200, 0.5);
       }
 
       .bar {
@@ -83,9 +84,9 @@
       .gpill {
         padding: 6px 14px;
         border-radius: 999px;
-        border: 1px solid rgba(190, 200, 255, 0.25);
-        background: rgba(13, 17, 46, 0.5);
-        color: rgba(232, 235, 255, 0.92);
+        border: 1px solid rgba(255, 170, 220, 0.28);
+        background: rgba(30, 8, 48, 0.5);
+        color: rgba(252, 238, 250, 0.92);
         font-size: 12.5px;
         letter-spacing: 0.04em;
         white-space: nowrap;
@@ -95,7 +96,7 @@
       .privacy {
         font-size: 11.5px;
         letter-spacing: 0.04em;
-        color: rgba(205, 212, 255, 0.55);
+        color: rgba(243, 205, 240, 0.55);
         text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
         white-space: nowrap;
       }
@@ -108,7 +109,7 @@
       .hint {
         font-size: 12.5px;
         letter-spacing: 0.08em;
-        color: rgba(205, 212, 255, 0.62);
+        color: rgba(243, 205, 240, 0.62);
         text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
         padding-bottom: 10px;
         white-space: nowrap;
@@ -124,9 +125,9 @@
         min-height: 44px;
         padding: 10px 16px;
         border-radius: 999px;
-        border: 1px solid rgba(190, 200, 255, 0.32);
-        background: rgba(13, 17, 46, 0.55);
-        color: #e8ebff;
+        border: 1px solid rgba(255, 170, 220, 0.32);
+        background: rgba(30, 8, 48, 0.55);
+        color: #fceef8;
         font-size: 13.5px;
         letter-spacing: 0.06em;
         cursor: pointer;
@@ -134,12 +135,12 @@
         -webkit-backdrop-filter: blur(8px);
         transition: background 0.2s ease, border-color 0.2s ease;
       }
-      .controls button:hover { background: rgba(35, 42, 92, 0.65); border-color: rgba(210, 218, 255, 0.55); }
+      .controls button:hover { background: rgba(64, 20, 92, 0.65); border-color: rgba(255, 200, 235, 0.55); }
       .controls button:active { transform: scale(0.97); }
       .controls button.active {
-        background: rgba(64, 54, 120, 0.72);
-        border-color: rgba(232, 200, 119, 0.75);
-        color: #ffeec2;
+        background: rgba(110, 30, 95, 0.72);
+        border-color: rgba(255, 170, 220, 0.8);
+        color: #ffe3f4;
       }
       .controls button:disabled { opacity: 0.55; cursor: wait; }
 
@@ -153,7 +154,7 @@
         display: none;
         border-radius: 14px;
         overflow: hidden;
-        border: 1px solid rgba(190, 200, 255, 0.42);
+        border: 1px solid rgba(255, 170, 220, 0.42);
         box-shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
         background: #000;
       }
@@ -206,10 +207,10 @@
         position: relative;
         background: #fdfdf8;
         padding: 12px 12px 42px;
-        border: 3px solid #e6c877;
+        border: 3px solid #f0a8cf;
         border-radius: 6px;
         box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4),
-          0 0 46px rgba(232, 200, 119, 0.45),
+          0 0 46px rgba(240, 168, 207, 0.45),
           0 24px 60px rgba(0, 0, 0, 0.6);
         animation: focusIn 0.38s cubic-bezier(0.2, 0.9, 0.3, 1.18);
       }
@@ -237,9 +238,9 @@
         width: 38px;
         height: 38px;
         border-radius: 50%;
-        border: 2px solid #e6c877;
-        background: #141a3d;
-        color: #ffe9a8;
+        border: 2px solid #f0a8cf;
+        background: #2a0a38;
+        color: #ffd7ef;
         font-size: 17px;
         line-height: 1;
         cursor: pointer;
@@ -260,9 +261,9 @@
         max-width: 88vw;
         padding: 9px 16px;
         border-radius: 999px;
-        border: 1px solid rgba(190, 200, 255, 0.35);
-        background: rgba(10, 13, 34, 0.88);
-        color: #e8ebff;
+        border: 1px solid rgba(255, 170, 220, 0.35);
+        background: rgba(24, 4, 36, 0.88);
+        color: #fceef8;
         font-size: 13px;
         letter-spacing: 0.04em;
         text-align: center;
@@ -275,7 +276,7 @@
         text-align: center;
         font-size: 12px;
         letter-spacing: 0.03em;
-        color: rgba(205, 212, 255, 0.75);
+        color: rgba(243, 205, 240, 0.75);
         text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
         pointer-events: auto;
         word-break: break-word;
@@ -292,7 +293,7 @@
         text-align: center;
         font-size: 12px;
         letter-spacing: 0.03em;
-        color: rgba(205, 212, 255, 0.75);
+        color: rgba(243, 205, 240, 0.75);
         text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
         word-break: break-word;
       }
@@ -309,25 +310,25 @@
         width: min(92vw, 520px);
         padding: 16px 18px 14px;
         border-radius: 14px;
-        border: 1px solid rgba(232, 200, 119, 0.55);
-        background: rgba(10, 13, 34, 0.96);
-        color: #eef0ff;
+        border: 1px solid rgba(255, 170, 220, 0.55);
+        background: rgba(24, 4, 36, 0.96);
+        color: #fdf0fa;
         box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
         font-size: 13.5px;
         line-height: 1.65;
         letter-spacing: 0.02em;
       }
       #camHelp.on { display: block; }
-      #camHelp .chTitle { font-size: 15px; font-weight: 700; color: #ffeec2; margin-bottom: 4px; }
-      #camHelp .chReason { color: rgba(232, 235, 255, 0.88); word-break: break-word; white-space: pre-wrap; }
+      #camHelp .chTitle { font-size: 15px; font-weight: 700; color: #ffd7ef; margin-bottom: 4px; }
+      #camHelp .chReason { color: rgba(252, 238, 248, 0.88); word-break: break-word; white-space: pre-wrap; }
       #camHelp .chUrl {
         display: block;
         margin: 10px 0 8px;
         padding: 8px 10px;
         border-radius: 8px;
         background: rgba(255, 255, 255, 0.07);
-        border: 1px solid rgba(190, 200, 255, 0.22);
-        color: #bcd2ff;
+        border: 1px solid rgba(255, 170, 220, 0.22);
+        color: #f3c6ff;
         font-size: 12px;
         word-break: break-all;
         text-decoration: none;
@@ -337,9 +338,9 @@
         min-height: 38px;
         padding: 8px 14px;
         border-radius: 999px;
-        border: 1px solid rgba(190, 200, 255, 0.35);
-        background: rgba(35, 42, 92, 0.7);
-        color: #e8ebff;
+        border: 1px solid rgba(255, 170, 220, 0.35);
+        background: rgba(64, 20, 92, 0.7);
+        color: #fceef8;
         font-size: 13px;
         cursor: pointer;
         text-decoration: none;
@@ -347,9 +348,9 @@
         align-items: center;
       }
       #camHelp .chRow button.primary {
-        background: rgba(64, 54, 120, 0.85);
-        border-color: rgba(232, 200, 119, 0.75);
-        color: #ffeec2;
+        background: rgba(110, 30, 95, 0.85);
+        border-color: rgba(255, 170, 220, 0.8);
+        color: #ffe3f4;
       }
 
       #dropHint {
@@ -359,10 +360,10 @@
         display: none;
         align-items: center;
         justify-content: center;
-        border: 2px dashed rgba(232, 200, 119, 0.8);
+        border: 2px dashed rgba(255, 170, 220, 0.8);
         border-radius: 18px;
-        background: rgba(6, 8, 26, 0.55);
-        color: #ffeec2;
+        background: rgba(20, 3, 32, 0.55);
+        color: #ffd7ef;
         font-size: 17px;
         letter-spacing: 0.1em;
         pointer-events: none;
@@ -378,8 +379,8 @@
         justify-content: center;
         text-align: center;
         padding: 24px;
-        color: #dfe4ff;
-        background: radial-gradient(120% 100% at 50% 20%, #141b45 0%, #04061a 70%);
+        color: #f6e3f6;
+        background: radial-gradient(120% 100% at 50% 20%, #2a0a44 0%, #0d0214 70%);
         font-size: 15px;
         line-height: 1.8;
       }
@@ -475,8 +476,9 @@
     <script>
       "use strict";
       /* ============================================================
-         粒子圣诞树 — WebGL 复刻抖音 @水炒冰 的 moderngl 粒子效果
-         树身 / 树干 / 地面光环 / 爱心树顶 / 星芒 / 飘雪 / 浮尘
+         粒子圣诞树 — 粉色闪粉粒子树（参考抖音 @Zyw0605_ 的粒子引擎演示）
+         粉色粒子树身 / 螺旋光带 / 白色四角星树顶 / 轨道环树基 /
+         开场星爆 / 两侧烟花 / 代码纹理背景 / 浮尘
          + 手势识别（MediaPipe Hands，本地运行）+ 照片贴片
          ============================================================ */
 
@@ -564,14 +566,13 @@
         toastTimer = setTimeout(function () { toastEl.classList.remove("on"); }, ms || 3400);
       }
 
-      /* ---------- 树叶颜色梯度（原版色标） ---------- */
+      /* ---------- 树叶颜色梯度（单色粉：底部深品红 → 顶部近白粉） ---------- */
       var STOPS = [
-        [0.00, 0.14, 0.92, 0.22],
-        [0.26, 0.05, 0.92, 0.40],
-        [0.46, 0.10, 0.86, 0.74],
-        [0.66, 0.30, 0.62, 1.00],
-        [0.84, 0.74, 0.36, 1.00],
-        [1.00, 1.00, 0.42, 0.78]
+        [0.00, 0.66, 0.14, 0.50],
+        [0.30, 0.88, 0.26, 0.62],
+        [0.58, 1.00, 0.46, 0.76],
+        [0.80, 1.04, 0.66, 0.88],
+        [1.00, 1.12, 0.92, 1.04]
       ];
       function gradColor(h, out) {
         h = clamp(h, 0, 1);
@@ -585,7 +586,7 @@
             return out;
           }
         }
-        out[0] = 1; out[1] = 0.42; out[2] = 0.78;
+        out[0] = 1.12; out[1] = 0.92; out[2] = 1.04;
         return out;
       }
 
@@ -642,7 +643,7 @@
         sys.delay[i] = Math.random() * 0.45;
       }
 
-      /* ----- 树叶：8 层垂坠裙边圆锥 ----- */
+      /* ----- 树叶：8 层柔和波浪裙边圆锥（层间重叠大、台阶柔化） ----- */
       function buildLeaves(count) {
         var sys = makeSystem(count), c = [0, 0, 0];
         var TIERS = 8, tierSpan = TREE_H / TIERS;
@@ -656,17 +657,17 @@
           var pick = Math.random() * wSum, tier = 0;
           while (pick > weights[tier]) { pick -= weights[tier]; tier++; }
           var tierTopY = BASE_Y + (tier + 1) * tierSpan * 0.94;
-          var tierH = tierSpan * 1.16; // 层间重叠减小，台阶才不被抹平
+          var tierH = tierSpan * 1.34; // 层间重叠加大，轮廓呈柔和波浪而非硬台阶
           var s = Math.pow(Math.random(), 0.62); // 偏向裙边
           var rim = Math.random() < 0.20; // 裙边亮 rim 粒子
           if (rim) s = rand(0.93, 1.0);
           var yTopH = (tierTopY - BASE_Y) / TREE_H;
           var yBotH = (tierTopY - tierH - BASE_Y) / TREE_H;
-          // 强阶梯轮廓：层顶深收、层底大张，半径只在接近裙边时才外翻（扇贝形）
-          var rTop = radiusAt(clamp(yTopH, 0, 1)) * 0.78;
-          var rBot = radiusAt(clamp(yBotH, 0, 1)) * 1.30;
-          var r = lerp(rTop, rBot, Math.pow(s, 2.1)) + Math.sin(s * Math.PI) * 0.03 * rBot;
-          var droop = 0.13 * smoothstep(0.78, 1.0, s) * (0.5 + rBot / BASE_R * 0.7);
+          // 柔和扇贝轮廓：层顶略收、层底外张，半径随 s 平滑外翻
+          var rTop = radiusAt(clamp(yTopH, 0, 1)) * 0.88;
+          var rBot = radiusAt(clamp(yBotH, 0, 1)) * 1.18;
+          var r = lerp(rTop, rBot, Math.pow(s, 1.55)) + Math.sin(s * Math.PI) * 0.035 * rBot;
+          var droop = 0.10 * smoothstep(0.78, 1.0, s) * (0.5 + rBot / BASE_R * 0.7);
           var y = tierTopY - s * tierH - droop;
           var ang = Math.random() * Math.PI * 2;
           var rr = r * rand(0.80, 1.0); // 体积感：内层略暗
@@ -675,22 +676,23 @@
           var h = clamp((y - BASE_Y) / TREE_H, 0, 1);
           gradColor(h, c);
           var bright = 0.55 + 0.45 * (rr / Math.max(r, 0.001));
-          if (s < 0.25) bright *= 0.38; // 裙边正下方的凹槽压暗，台阶分明
-          if (s > 0.78) bright *= 1.4; // 裙边更亮
-          if (rim) bright *= 1.6;
+          if (s < 0.25) bright *= 0.66; // 层间凹处略压暗，保留柔和波浪层次
+          if (s > 0.78) bright *= 1.3; // 裙边更亮
+          if (rim) bright *= 1.45;
           bright *= rand(0.82, 1.12);
           var col = [c[0] * bright, c[1] * bright, c[2] * bright];
-          var size = rand(0.013, 0.027);
-          if (Math.random() < 0.045) { // 金色小灯
-            col = [1.0 * rand(1.1, 1.4), 0.78 * rand(1.1, 1.35), 0.34];
-            size = rand(0.024, 0.036);
+          var size = rand(0.011, 0.022); // 细密小点，闪粉质感
+          if (Math.random() < 0.05) { // 近白粉色闪点
+            var fb = rand(1.15, 1.5);
+            col = [1.02 * fb, 0.88 * fb, 0.97 * fb];
+            size = rand(0.02, 0.03);
           }
           setP(sys, i, scattered(p1, 1.75, 2.6, 0.55), p1, cloudTarget(), col, size);
         }
         return sys;
       }
 
-      /* ----- 树干：金棕渐变，基本被树冠遮住 ----- */
+      /* ----- 树干：深品红棕渐变，基本被树冠遮住 ----- */
       function buildTrunk(count) {
         var sys = makeSystem(count);
         for (var i = 0; i < count; i++) {
@@ -699,73 +701,97 @@
           var rr = rand(0.02, 0.10) * (1 - (y + 0.38) * 0.5);
           var p1 = [Math.cos(ang) * rr, y, Math.sin(ang) * rr];
           var t = (y + 0.38) / 0.6;
-          var col = [lerp(0.62, 1.0, t) * 0.9, lerp(0.36, 0.72, t) * 0.85, lerp(0.14, 0.42, t) * 0.8];
+          var col = [lerp(0.55, 0.85, t) * 0.85, lerp(0.22, 0.42, t) * 0.8, lerp(0.42, 0.62, t) * 0.85];
           setP(sys, i, scattered(p1, 1.8, 2.4, 0.4), p1, cloudTarget(), col, rand(0.016, 0.028));
         }
         return sys;
       }
 
-      /* ----- 地面：雪盘（散开时留在原地，只变淡） ----- */
+      /* ----- 地面：暗色地面上稀疏的粉白微光点（散开时留在原地，只变淡） ----- */
       function buildGround(discCount) {
         var sys = makeSystem(discCount);
         for (var i = 0; i < discCount; i++) {
           var ang = Math.random() * Math.PI * 2;
-          var rr = 2.75 * Math.sqrt(Math.random());
+          var rr = 2.9 * Math.sqrt(Math.random());
           var p1 = [Math.cos(ang) * rr, -0.375 + rand(-0.008, 0.014), Math.sin(ang) * rr];
-          var fade = 1 - rr / 2.9;
-          var wht = Math.random() * 0.5;
-          var col = [
-            (0.45 + wht * 0.5) * (0.25 + fade * 0.6),
-            (0.58 + wht * 0.4) * (0.25 + fade * 0.6),
-            (0.95) * (0.28 + fade * 0.62)
-          ];
-          setP(sys, i, scattered(p1, 1.6, 2.2, 0.5), p1, p1, col, rand(0.014, 0.030));
+          var fade = 1 - rr / 3.1;
+          var b = rand(0.15, 0.7) * (0.2 + fade * 0.8);
+          var col = [1.0 * b, 0.78 * b, 0.92 * b];
+          setP(sys, i, scattered(p1, 1.6, 2.2, 0.5), p1, p1, col, rand(0.010, 0.020));
         }
         return sys;
       }
 
-      /* ----- 地面 3 圈发光光环：窄带、高亮、独立成系统 ----- */
+      /* ----- 树基轨道环：3 圈倾斜的细椭圆环（土星环式，淡粉白、低亮度） ----- */
       function buildRings(count) {
         var sys = makeSystem(count);
-        var radii = [0.82, 1.26, 1.68];
-        var per = [0.24, 0.34, 0.42]; // 按周长分配
+        var radii = [1.95, 2.40, 2.85];
+        var per = [0.28, 0.34, 0.38]; // 按周长分配
         for (var i = 0; i < count; i++) {
           var pick = Math.random(), ri = radii[2], acc = 0;
           for (var k = 0; k < 3; k++) { acc += per[k]; if (pick <= acc) { ri = radii[k]; break; } }
           var a2 = Math.random() * Math.PI * 2;
-          var r2 = ri + rand(-0.045, 0.045); // 窄带才成“圈”
-          var p1 = [Math.cos(a2) * r2, -0.360 + rand(-0.003, 0.005), Math.sin(a2) * r2];
-          var b = rand(1.25, 1.95);
-          var col = [0.70 * b, 0.86 * b, 1.30 * b];
-          setP(sys, i, scattered(p1, 1.6, 2.2, 0.5), p1, p1, col, rand(0.020, 0.034));
+          var r2 = ri + rand(-0.03, 0.03); // 窄带才成“圈”
+          // 绕 X 轴倾斜：y 随 sin(a) 起伏，呈椭圆轨道感
+          var p1 = [Math.cos(a2) * r2, -0.365 + Math.sin(a2) * r2 * 0.21 + rand(-0.004, 0.004), Math.sin(a2) * r2 * 0.98];
+          var b = rand(0.45, 0.95);
+          var col = [1.02 * b, 0.84 * b, 0.96 * b];
+          setP(sys, i, scattered(p1, 1.6, 2.2, 0.5), p1, p1, col, rand(0.010, 0.018));
         }
         return sys;
       }
 
-      /* ----- 树顶爱心：经典心形公式填充 ----- */
-      var HEART_CY = TIP_Y + 0.36;
-      function buildHeart(count) {
+      /* ----- 螺旋光带：更亮更密的粒子沿螺旋线绕树 3.5 圈（招牌元素） ----- */
+      function buildRibbon(count) {
         var sys = makeSystem(count);
         for (var i = 0; i < count; i++) {
-          var t = Math.random() * Math.PI * 2;
-          var k = Math.sqrt(Math.random());
-          var hx = 16 * Math.pow(Math.sin(t), 3);
-          var hy = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
-          var S = 0.0215;
-          var x = hx * k * S, y = (hy + 2.5) * k * S;
-          var z = rand(-1, 1) * 0.075 * (1 - k * 0.45);
-          var p1 = [x, HEART_CY + y, z];
-          var d = clamp(Math.hypot(x, y) / 0.36, 0, 1);
-          var core = smoothstep(0.55, 0.0, d);
+          var t = Math.random(); // 0 树底 → 1 树顶
+          var ang = t * Math.PI * 2 * 3.5 + rand(-0.15, 0.15);
+          var y = BASE_Y + 0.06 + t * (TREE_H - 0.20) + rand(-0.03, 0.03);
+          var h = clamp((y - BASE_Y) / TREE_H, 0, 1);
+          var r = radiusAt(h) * 1.07 + rand(-0.02, 0.05);
+          var p1 = [Math.cos(ang) * r, y, Math.sin(ang) * r];
+          var b = rand(1.0, 1.6);
+          var col = [1.05 * b, 0.72 * b, 0.92 * b];
+          setP(sys, i, scattered(p1, 1.75, 2.6, 0.55), p1, cloudTarget(), col, rand(0.02, 0.034));
+        }
+        return sys;
+      }
+
+      /* ----- 树顶：亮白色四角星（✦）+ 四向小射线光点，正对镜头不随树旋转 ----- */
+      var STAR_CY = TIP_Y + 0.34;
+      function buildTopper(count) {
+        var sys = makeSystem(count);
+        for (var i = 0; i < count; i++) {
+          var x, y, z;
+          if (Math.random() < 0.10) {
+            // 上下左右四条主射线上的稀疏光点
+            var axis = (Math.random() * 4) | 0;
+            var d = rand(0.34, 0.62);
+            x = axis === 0 ? d : axis === 1 ? -d : rand(-0.015, 0.015);
+            y = axis === 2 ? d : axis === 3 ? -d : rand(-0.015, 0.015);
+            z = rand(-0.02, 0.02);
+          } else {
+            // 四角星填充：半径随角度呈四瓣轮廓（|cos 2θ| 在四向最大）
+            var th = Math.random() * Math.PI * 2;
+            var prof = 0.20 + 0.80 * Math.pow(Math.abs(Math.cos(2 * th)), 0.75);
+            var rr = 0.34 * prof * Math.sqrt(Math.random());
+            x = Math.cos(th) * rr;
+            y = Math.sin(th) * rr;
+            z = rand(-1, 1) * 0.045 * (1 - rr / 0.36);
+          }
+          var p1 = [x, STAR_CY + y, z];
+          var dc = clamp(Math.hypot(x, y) / 0.34, 0, 1);
+          var core = smoothstep(0.6, 0.0, dc);
           var col = [
-            lerp(1.00, 1.22, core),
-            lerp(0.30, 1.02, core),
-            lerp(0.62, 1.10, core)
+            lerp(1.02, 1.30, core),
+            lerp(0.94, 1.24, core),
+            lerp(1.02, 1.28, core)
           ];
           var p0 = [x * rand(1.8, 2.6) + rand(-0.5, 0.5),
-                    HEART_CY + y * rand(1.8, 2.6) + rand(-0.4, 0.7),
+                    STAR_CY + y * rand(1.8, 2.6) + rand(-0.4, 0.7),
                     z * 2 + rand(-0.5, 0.5)];
-          setP(sys, i, p0, p1, cloudTarget(), col, rand(0.015, 0.028));
+          setP(sys, i, p0, p1, cloudTarget(), col, rand(0.014, 0.026));
         }
         return sys;
       }
@@ -773,8 +799,8 @@
       /* ----- 星芒：贴在树表面的四角星 ----- */
       function buildSparkles(count) {
         var sys = makeSystem(count);
-        var cWarm = [1.0, 0.96, 0.88], cGold = [1.0, 0.80, 0.36],
-            cPink = [1.0, 0.45, 0.75], cCyan = [0.55, 0.95, 1.0];
+        var cWhite = [1.08, 1.02, 1.05], cLight = [1.05, 0.82, 0.95],
+            cPink = [1.0, 0.55, 0.82], cDeep = [1.0, 0.38, 0.68];
         for (var i = 0; i < count; i++) {
           var h = Math.pow(Math.random(), 0.9);
           var y = BASE_Y + h * TREE_H * 0.985;
@@ -782,7 +808,7 @@
           var ang = Math.random() * Math.PI * 2;
           var p1 = [Math.cos(ang) * r, y, Math.sin(ang) * r];
           var pick = Math.random();
-          var col = pick < 0.68 ? cWarm : pick < 0.81 ? cGold : pick < 0.90 ? cPink : cCyan;
+          var col = pick < 0.55 ? cWhite : pick < 0.78 ? cLight : pick < 0.92 ? cPink : cDeep;
           var hero = Math.random() < 0.045;
           var size = hero ? rand(0.15, 0.21) : rand(0.05, 0.095);
           setP(sys, i, scattered(p1, 1.8, 2.5, 0.5), p1, cloudTarget(), col.slice(), size);
@@ -795,7 +821,7 @@
       /* ----- 空气浮尘 ----- */
       function buildDust(count) {
         var sys = makeSystem(count);
-        var palette = [[0.65, 0.75, 1.0], [1.0, 0.7, 0.9], [0.6, 1.0, 0.85], [1.0, 0.9, 0.6]];
+        var palette = [[1.0, 0.78, 0.92], [1.0, 0.62, 0.85], [0.92, 0.82, 1.0], [1.0, 0.92, 0.97]];
         for (var i = 0; i < count; i++) {
           var ang = Math.random() * Math.PI * 2;
           var rr = rand(0.4, 3.1);
@@ -818,26 +844,67 @@
           var p1 = [Math.cos(ang) * Math.cos(el) * R, Math.sin(el) * R - 2, -Math.abs(Math.sin(ang)) * Math.cos(el) * R - rand(4, 20)];
           var b = rand(0.35, 1.0);
           var tint = Math.random();
-          var col = tint < 0.75 ? [b, b, b * 1.05] : tint < 0.88 ? [b * 0.8, b * 0.88, b * 1.2] : [b * 1.15, b * 0.9, b * 0.95];
+          var col = tint < 0.75 ? [b, b * 0.97, b * 1.02] : tint < 0.88 ? [b * 0.9, b * 0.8, b * 1.15] : [b * 1.1, b * 0.88, b * 0.98];
           setP(sys, i, p1, p1, p1, col, rand(0.05, 0.16));
           sys.delay[i] = 0;
         }
         return sys;
       }
 
-      /* ----- 飘雪（独立属性） ----- */
-      function buildSnow(count) {
-        var pos = new Float32Array(count * 3), seed = new Float32Array(count * 4);
-        for (var i = 0; i < count; i++) {
-          pos[i * 3] = rand(-4.6, 4.6);
-          pos[i * 3 + 1] = rand(-0.4, 4.8);
-          pos[i * 3 + 2] = rand(-3.6, 3.2);
-          seed[i * 4] = rand(0.14, 0.42);        // 落速
-          seed[i * 4 + 1] = rand(0, Math.PI * 2); // 摆动相位
-          seed[i * 4 + 2] = rand(0.009, 0.022);   // 大小
-          seed[i * 4 + 3] = rand(0.5, 1.0);       // 亮度
+      /* ----- 两侧烟花：6 组定时绽放（64 秒一轮），位置/速度/时刻全在着色器里算 ----- */
+      var FW_CYCLE = 64;
+      function buildFireworks() {
+        var bursts = [
+          { o: [-2.9, 2.35, -0.9], s: 7 }, { o: [3.1, 2.70, -1.1], s: 19 },
+          { o: [-3.3, 1.90, -0.6], s: 31 }, { o: [2.8, 2.10, -1.3], s: 43 },
+          { o: [3.4, 2.90, -0.8], s: 54 }, { o: [-2.7, 2.80, -1.2], s: 58 }
+        ];
+        var palette = [[1.0, 0.75, 0.90], [1.05, 0.95, 1.0], [1.0, 0.55, 0.80], [0.95, 0.80, 1.0]];
+        var per = 26, n = bursts.length * per;
+        var origin = new Float32Array(n * 3), vel = new Float32Array(n * 3),
+            col = new Float32Array(n * 3), start = new Float32Array(n),
+            life = new Float32Array(n), size = new Float32Array(n);
+        var idx = 0;
+        for (var b = 0; b < bursts.length; b++) {
+          var c = palette[b % palette.length];
+          for (var j = 0; j < per; j++, idx++) {
+            origin.set(bursts[b].o, idx * 3);
+            var th = Math.random() * Math.PI * 2;
+            var ph = Math.acos(rand(-1, 1));
+            var sp = rand(0.45, 1.1) * Math.sin(ph);
+            vel.set([Math.cos(th) * sp, Math.cos(ph) * rand(0.45, 1.1), Math.sin(th) * sp], idx * 3);
+            var cb = rand(0.7, 1.15);
+            col.set([c[0] * cb, c[1] * cb, c[2] * cb], idx * 3);
+            start[idx] = bursts[b].s + rand(0, 0.25);
+            life[idx] = rand(1.1, 1.7);
+            size[idx] = rand(0.02, 0.04);
+          }
         }
-        return { n: count, pos: pos, seed: seed };
+        return { n: n, data: [origin, vel, col, start, life, size] };
+      }
+
+      /* ----- 开场星爆：放射线条（每条 2 个顶点）+ 中心光核点 ----- */
+      var BURST_N = 150, CORE_N = 26;
+      function buildBurst() {
+        var dir = new Float32Array(BURST_N * 2 * 3), end = new Float32Array(BURST_N * 2),
+            len = new Float32Array(BURST_N * 2);
+        for (var i = 0; i < BURST_N; i++) {
+          var th = Math.random() * Math.PI * 2;
+          var vx = Math.cos(th), vy = Math.sin(th) * 0.85, vz = rand(-0.3, 0.3);
+          var vl = Math.hypot(vx, vy, vz) || 1;
+          var L = rand(1.3, 3.6);
+          for (var e = 0; e < 2; e++) {
+            dir.set([vx / vl, vy / vl, vz / vl], (i * 2 + e) * 3);
+            end[i * 2 + e] = e;
+            len[i * 2 + e] = L;
+          }
+        }
+        var cPos = new Float32Array(CORE_N * 3), cSize = new Float32Array(CORE_N);
+        for (var j = 0; j < CORE_N; j++) {
+          cPos.set([rand(-0.05, 0.05), 1.35 + rand(-0.05, 0.05), rand(-0.05, 0.05)], j * 3);
+          cSize[j] = rand(1.2, 2.6);
+        }
+        return { dir: dir, end: end, len: len, cPos: cPos, cSize: cSize };
       }
 
       /* ============================================================
@@ -866,24 +933,40 @@
         "  for(int k=0;k<4;k++){ v += a*noise(p); p = p*2.13 + 17.7; a *= 0.5; }",
         "  return v;",
         "}",
+        // 伪代码纹理：等宽字格 + 每行随机缩进/长度 + 词间空缺（不可读，仅氛围）
+        "float codeField(vec2 uv){",
+        "  vec2 g = uv * vec2(110.0, 150.0);",
+        "  vec2 id = floor(g);",
+        "  vec2 f = fract(g);",
+        "  float indent = floor(hash(vec2(id.y, 7.31)) * 16.0);",
+        "  float len = 10.0 + floor(hash(vec2(id.y, 13.73)) * 60.0);",
+        "  float inLine = step(indent, id.x) * step(id.x, indent + len);",
+        "  float ch = step(0.38, hash(id + 3.17));",
+        "  float glyph = step(0.28, f.y) * step(f.y, 0.72) * step(0.12, f.x) * step(f.x, 0.88);",
+        "  return inLine * ch * glyph;",
+        "}",
         "void main(){",
         "  vec2 uv = vUv;",
-        // 深蓝紫竖向渐变
-        "  vec3 col = mix(vec3(0.012,0.016,0.055), vec3(0.030,0.045,0.130), smoothstep(0.0,0.62,uv.y));",
-        "  col = mix(col, vec3(0.075,0.045,0.170), smoothstep(0.55,1.05,uv.y)*0.75);",
-        // 左侧紫色星云 / 右侧蓝色星云
+        // 近黑深紫竖向渐变（#0d0214 → #1a0530）
+        "  vec3 col = mix(vec3(0.030,0.004,0.055), vec3(0.051,0.008,0.078), smoothstep(0.0,0.65,uv.y));",
+        "  col = mix(col, vec3(0.102,0.020,0.188), smoothstep(0.55,1.05,uv.y)*0.8);",
+        // 两侧极淡紫色星云
         "  float nL = fbm(uv*vec2(3.0,4.2) + vec2(1.7,0.4) + uTime*0.004);",
         "  float mL = smoothstep(0.52,0.95,nL) * smoothstep(0.85,0.15,uv.x) * smoothstep(0.05,0.55,uv.y);",
-        "  col += vec3(0.36,0.14,0.72) * mL * 0.55;",
+        "  col += vec3(0.42,0.12,0.62) * mL * 0.4;",
         "  float nR = fbm(uv*vec2(3.4,3.8) + vec2(8.3,2.9) - uTime*0.003);",
         "  float mR = smoothstep(0.52,0.95,nR) * smoothstep(0.25,0.95,uv.x) * smoothstep(0.10,0.6,uv.y);",
-        "  col += vec3(0.10,0.26,0.78) * mR * 0.5;",
-        // 树顶后的粉色光晕
+        "  col += vec3(0.30,0.10,0.55) * mR * 0.38;",
+        // 左右边缘的代码纹理列（粒子引擎氛围）
+        "  float edge = clamp(smoothstep(0.34,0.14,uv.x) + smoothstep(0.66,0.86,uv.x), 0.0, 1.0);",
+        "  float code = codeField(uv) * 0.85 + codeField(uv*1.7 + 0.37) * 0.5;",
+        "  col += vec3(0.72,0.52,0.98) * code * edge * 0.13;",
+        // 树顶星后的粉色光晕
         "  float d = length((uv - uHalo)*vec2(1.35,1.0));",
-        "  col += vec3(0.85,0.30,0.55) * exp(-d*d*9.0) * 0.30;",
-        "  col += vec3(0.55,0.35,0.85) * exp(-d*d*3.0) * 0.12;",
-        // 底部雪地微光 + 暗角
-        "  col += vec3(0.10,0.16,0.34) * smoothstep(0.30,0.0,uv.y) * 0.35;",
+        "  col += vec3(0.90,0.35,0.62) * exp(-d*d*9.0) * 0.30;",
+        "  col += vec3(0.55,0.25,0.80) * exp(-d*d*3.0) * 0.12;",
+        // 底部微光 + 暗角
+        "  col += vec3(0.16,0.06,0.26) * smoothstep(0.30,0.0,uv.y) * 0.30;",
         "  float vig = smoothstep(1.25, 0.45, length(uv-vec2(0.5,0.46)));",
         "  col *= 0.55 + 0.45*vig;",
         "  gl_FragColor = vec4(col, 1.0);",
@@ -924,7 +1007,8 @@
         "  pos.x += sin(uTime*0.7 + aPhase)*uSway;",
         "  pos.z += cos(uTime*0.55 + aPhase*1.31)*uSway;",
         "  pos.y += sin(uTime*0.5 + aPhase*0.7)*uSway*0.6;",
-        "  float tw = 1.0 - uTwinkle + uTwinkle*(0.70 + 0.30*sin(uTime*(1.1+fract(aPhase*0.618)*1.7) + aPhase*7.0));",
+        "  float twp = 0.5 + 0.5*sin(uTime*(1.4+fract(aPhase*0.618)*2.6) + aPhase*7.0);",
+        "  float tw = 1.0 - uTwinkle + uTwinkle*(0.30 + 0.70*twp*twp);",
         "  vColor = aColor * tw * uBrightMul * uPulse;",
         "  vA = uAlpha * (0.25 + 0.75*t);",
         "  vec4 mv = uMV * vec4(pos, 1.0);",
@@ -995,35 +1079,97 @@
         "}"
       ].join("\n");
 
-      var SNOW_VERT = [
-        "attribute vec3 aPos;",
-        "attribute vec4 aSeed;",
+      // 开场星爆线条：从树心向外放射的细光线，随 uT 伸长并淡出
+      var BURST_VERT = [
+        "attribute vec3 aDir;",
+        "attribute float aEnd;",
+        "attribute float aLen;",
         "uniform mat4 uProj;",
         "uniform mat4 uMV;",
-        "uniform float uTime, uScale;",
+        "uniform float uT;",
         "varying float vA;",
         "void main(){",
-        "  float span = 5.2;",
-        "  float y = mod(aPos.y + 0.4 - uTime*aSeed.x, span) - 0.4;",
-        "  vec3 pos = vec3(aPos.x + sin(uTime*0.6 + aSeed.y)*0.28 + sin(uTime*0.23 + aSeed.y*2.0)*0.12, y, aPos.z);",
-        "  float land = smoothstep(-0.40, -0.05, y);",
-        "  float born = smoothstep(4.8, 4.1, y);",
-        "  vA = land * born * aSeed.w;",
-        "  vec4 mv = uMV * vec4(pos, 1.0);",
-        "  gl_Position = uProj * mv;",
-        "  gl_PointSize = clamp(aSeed.z * uScale / max(0.1,-mv.z), 1.0, 26.0);",
+        "  float e = 1.0 - pow(1.0 - uT, 3.0);",
+        "  float head = mix(0.15, aLen, e);",
+        "  float dist = mix(head*0.45, head, aEnd);",
+        "  vec3 pos = vec3(0.0, 1.35, 0.0) + aDir * dist;",
+        "  vA = (1.0 - uT) * (0.30 + 0.70*aEnd);",
+        "  gl_Position = uProj * uMV * vec4(pos, 1.0);",
         "}"
       ].join("\n");
 
-      var SNOW_FRAG = [
+      var BURST_FRAG = [
+        "precision mediump float;",
+        "varying float vA;",
+        "void main(){",
+        "  gl_FragColor = vec4(vec3(1.0, 0.82, 0.95) * vA, 1.0);",
+        "}"
+      ].join("\n");
+
+      // 开场星爆的中心光核：品红辉光点
+      var CORE_VERT = [
+        "attribute vec3 aPos;",
+        "attribute float aSize;",
+        "uniform mat4 uProj;",
+        "uniform mat4 uMV;",
+        "uniform float uScale, uA;",
+        "varying float vA;",
+        "void main(){",
+        "  vA = uA;",
+        "  vec4 mv = uMV * vec4(aPos, 1.0);",
+        "  gl_Position = uProj * mv;",
+        "  gl_PointSize = clamp(aSize * uScale / max(0.1,-mv.z), 1.0, 340.0);",
+        "}"
+      ].join("\n");
+
+      var CORE_FRAG = [
         "precision mediump float;",
         "varying float vA;",
         "void main(){",
         "  vec2 q = gl_PointCoord - 0.5;",
         "  float d2 = dot(q,q)*4.0;",
-        "  float a = exp(-d2*3.5) * vA * 0.5;",
+        "  float a = (exp(-d2*4.0) + exp(-d2*1.4)*0.4) * vA;",
         "  if(a < 0.004) discard;",
-        "  gl_FragColor = vec4(vec3(0.92,0.95,1.05) * a, 1.0);",
+        "  gl_FragColor = vec4(vec3(1.05, 0.30, 0.72) * a, 1.0);",
+        "}"
+      ].join("\n");
+
+      // 两侧烟花：年龄由 uTime 与每粒子的起始时刻决定，过期自动隐藏
+      var FW_VERT = [
+        "attribute vec3 aOrigin;",
+        "attribute vec3 aVel;",
+        "attribute vec3 aColor;",
+        "attribute float aStart;",
+        "attribute float aLife;",
+        "attribute float aSize;",
+        "uniform mat4 uProj;",
+        "uniform mat4 uMV;",
+        "uniform float uTime, uScale;",
+        "varying vec3 vColor;",
+        "varying float vA;",
+        "void main(){",
+        "  float age = mod(uTime, 64.0) - aStart;",
+        "  float k = age / aLife;",
+        "  bool dead = age < 0.0 || k > 1.0;",
+        "  vec3 pos = aOrigin + aVel*age + vec3(0.0, -0.22, 0.0)*age*age;",
+        "  vColor = aColor;",
+        "  vA = dead ? 0.0 : (1.0-k)*(1.0-k);",
+        "  vec4 mv = uMV * vec4(pos, 1.0);",
+        "  gl_Position = dead ? vec4(0.0, 0.0, -3.0, 1.0) : uProj * mv;",
+        "  gl_PointSize = dead ? 0.0 : clamp(aSize * uScale / max(0.1,-mv.z), 1.0, 42.0);",
+        "}"
+      ].join("\n");
+
+      var FW_FRAG = [
+        "precision mediump float;",
+        "varying vec3 vColor;",
+        "varying float vA;",
+        "void main(){",
+        "  vec2 q = gl_PointCoord - 0.5;",
+        "  float d2 = dot(q,q)*4.0;",
+        "  float a = (exp(-d2*5.0) + exp(-d2*1.7)*0.32) * vA;",
+        "  if(a < 0.004) discard;",
+        "  gl_FragColor = vec4(vColor * a, 1.0);",
         "}"
       ].join("\n");
 
@@ -1088,7 +1234,9 @@
       var bgProg = makeProgram(BG_VERT, BG_FRAG, ["aXY"]);
       var ptProg = makeProgram(PT_VERT, PT_FRAG, PT_ATTRS);
       var spProg = makeProgram(SP_VERT, SP_FRAG, PT_ATTRS);
-      var snowProg = makeProgram(SNOW_VERT, SNOW_FRAG, ["aPos", "aSeed"]);
+      var burstProg = makeProgram(BURST_VERT, BURST_FRAG, ["aDir", "aEnd", "aLen"]);
+      var coreProg = makeProgram(CORE_VERT, CORE_FRAG, ["aPos", "aSize"]);
+      var fwProg = makeProgram(FW_VERT, FW_FRAG, ["aOrigin", "aVel", "aColor", "aStart", "aLife", "aSize"]);
       var photoProg = makeProgram(PHOTO_VERT, PHOTO_FRAG, ["aXY", "aUV"]);
 
       function upload(sys) {
@@ -1119,21 +1267,31 @@
 
       var leaves = upload(buildLeaves(leafCount));
       var trunk = upload(buildTrunk(1000));
-      var ground = upload(buildGround(5200));
-      var rings = upload(buildRings(4600));
-      var heart = upload(buildHeart(2600));
+      var ground = upload(buildGround(2600));
+      var rings = upload(buildRings(2600));
+      var ribbon = upload(buildRibbon(3400));
+      var topper = upload(buildTopper(2400));
       var dust = upload(buildDust(850));
       var stars = upload(buildStars(750));
       var sparkles = upload(buildSparkles(900));
 
-      var snowData = buildSnow(isCoarse ? 1800 : 2600);
-      var snowBufs = [];
-      [snowData.pos, snowData.seed].forEach(function (arr) {
+      var fwData = buildFireworks();
+      var fwBufs = fwData.data.map(function (arr) {
         var b = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, b);
         gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW);
-        snowBufs.push(b);
+        return b;
       });
+
+      var burstData = buildBurst();
+      function makeBuf(arr) {
+        var b = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, b);
+        gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW);
+        return b;
+      }
+      var burstBufs = [makeBuf(burstData.dir), makeBuf(burstData.end), makeBuf(burstData.len)];
+      var coreBufs = [makeBuf(burstData.cPos), makeBuf(burstData.cSize)];
 
       var bgBuf = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, bgBuf);
@@ -1152,7 +1310,7 @@
          全部在本机生成纹理，不上传、不保存
          ============================================================ */
       var MAX_PHOTOS = 24;
-      var PHOTO_W = 0.36, PHOTO_H = 0.45; // 世界单位（512×640 比例）
+      var PHOTO_W = 0.20, PHOTO_H = 0.25; // 世界单位（512×640 比例）— 约为原尺寸的 55%，作小挂饰点缀树面，不抢粒子树主体
       var photos = []; // {tex, src, cap, treePos, angle, scatterPos, delay, tilt, scale, _sx, _sy, _vis}
 
       function makeTexture(source) {
@@ -1257,7 +1415,7 @@
           var ph = photos[i];
           var h = 0.13 + 0.74 * ((i * 0.61803) % 1);
           var a = i * 2.39996; // 黄金角分布
-          var r = radiusAt(h) * 1.05 + 0.09;
+          var r = radiusAt(h) * 1.03 + 0.05;
           ph.treePos = [Math.cos(a) * r, BASE_Y + h * TREE_H + 0.04, Math.sin(a) * r];
           ph.angle = a;
           var ra = (i / Math.max(1, N)) * Math.PI * 2 + 0.6;
@@ -2321,10 +2479,10 @@
         var viewM = mLookAt(eye, [0, view.targetY, 0], [0, 1, 0]);
         var modelM = mModel(view.offX, yawEff, 0);
         var mvTree = mMul(viewM, modelM);
-        var mvHeart = mMul(viewM, mModel(view.offX, 0, 0));
-        // 爱心脉动：整体亮度 + 尺寸随正弦呼吸；散开后随粒子云飘散
-        var heartPulse = 1 + 0.13 * (0.5 + 0.5 * Math.sin(time * 2.3)) - 0.065;
-        var mvHeartEff = scatterCur > 0.01 ? mvTree : mvHeart;
+        var mvTop = mMul(viewM, mModel(view.offX, 0, 0));
+        // 树顶星呼吸：整体亮度 + 尺寸随正弦脉动；散开后随粒子云飘散
+        var topPulse = 1 + 0.13 * (0.5 + 0.5 * Math.sin(time * 2.3)) - 0.065;
+        var mvTopEff = scatterCur > 0.01 ? mvTree : mvTop;
 
         gl.disable(gl.DEPTH_TEST);
         gl.disable(gl.BLEND);
@@ -2345,24 +2503,58 @@
         /* 背景星 */
         drawPoints(stars, viewM, { time: time, form: 1, scatter: 0, twinkle: 0.45, bright: 0.9 });
 
-        /* 地面雪盘 + 3 圈光环（散开时变淡，光环单独高亮两遍） */
-        drawPoints(ground, mvTree, { time: time, form: form, sizeMul: 1.25, twinkle: 0.18, bright: 0.9, alpha: 1 - 0.7 * scatterCur });
-        drawPoints(rings, mvTree, { time: time, form: form, sizeMul: 3.0, bright: 0.22, twinkle: 0.1, alpha: 1 - 0.85 * scatterCur });
-        drawPoints(rings, mvTree, { time: time, form: form, sizeMul: 1.35, bright: 1.15, twinkle: 0.1, alpha: 1 - 0.85 * scatterCur });
+        /* 开场星爆：品红光核 + 放射线条（形成动画最初约 0.95 秒） */
+        var burstT = clamp((now - formStart) / 950, 0, 1);
+        if (burstT < 1 && !REDUCED) {
+          gl.useProgram(burstProg.pr);
+          gl.uniformMatrix4fv(burstProg.U.uProj, false, view.proj);
+          gl.uniformMatrix4fv(burstProg.U.uMV, false, mvTop);
+          gl.uniform1f(burstProg.U.uT, burstT);
+          var bSizes = [3, 1, 1];
+          for (var bi = 0; bi < 3; bi++) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, burstBufs[bi]);
+            gl.enableVertexAttribArray(bi);
+            gl.vertexAttribPointer(bi, bSizes[bi], gl.FLOAT, false, 0, 0);
+          }
+          gl.drawArrays(gl.LINES, 0, BURST_N * 2);
+          for (var bj = 0; bj < 3; bj++) gl.disableVertexAttribArray(bj);
+          gl.useProgram(coreProg.pr);
+          gl.uniformMatrix4fv(coreProg.U.uProj, false, view.proj);
+          gl.uniformMatrix4fv(coreProg.U.uMV, false, mvTop);
+          gl.uniform1f(coreProg.U.uScale, view.scaleF);
+          gl.uniform1f(coreProg.U.uA, (1 - burstT) * (1 - burstT) * 0.55);
+          gl.bindBuffer(gl.ARRAY_BUFFER, coreBufs[0]);
+          gl.enableVertexAttribArray(0);
+          gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+          gl.bindBuffer(gl.ARRAY_BUFFER, coreBufs[1]);
+          gl.enableVertexAttribArray(1);
+          gl.vertexAttribPointer(1, 1, gl.FLOAT, false, 0, 0);
+          gl.drawArrays(gl.POINTS, 0, CORE_N);
+          gl.disableVertexAttribArray(0);
+          gl.disableVertexAttribArray(1);
+        }
+
+        /* 地面微光点 + 轨道环（散开时变淡） */
+        drawPoints(ground, mvTree, { time: time, form: form, sizeMul: 1.0, twinkle: 0.5, bright: 0.5, alpha: (1 - 0.7 * scatterCur) * 0.85 });
+        drawPoints(rings, mvTree, { time: time, form: form, sizeMul: 1.1, bright: 0.8, twinkle: 0.35, alpha: 1 - 0.85 * scatterCur });
 
         /* 树干 */
         drawPoints(trunk, mvTree, { time: time, form: form, twinkle: 0.1, bright: 0.9 });
 
-        /* 树叶：大光晕 + 亮芯两遍（亮度压低，避免叠加过曝发白） */
-        drawPoints(leaves, mvTree, { time: time, form: form, sizeMul: 2.0, bright: 0.07, sway: 0.008, twinkle: 0.25 });
-        drawPoints(leaves, mvTree, { time: time, form: form, sizeMul: 1.0, bright: 0.52, sway: 0.008, twinkle: 0.3 });
+        /* 树叶：大光晕 + 亮芯两遍（强闪烁出闪粉感，亮度压低避免过曝发白） */
+        drawPoints(leaves, mvTree, { time: time, form: form, sizeMul: 2.2, bright: 0.06, sway: 0.008, twinkle: 0.4 });
+        drawPoints(leaves, mvTree, { time: time, form: form, sizeMul: 1.0, bright: 0.52, sway: 0.008, twinkle: 0.75 });
+
+        /* 螺旋光带：柔光晕 + 亮芯两遍 */
+        drawPoints(ribbon, mvTree, { time: time, form: form, sizeMul: 2.6, bright: 0.16, twinkle: 0.3 });
+        drawPoints(ribbon, mvTree, { time: time, form: form, sizeMul: 1.0, bright: 0.95, twinkle: 0.35 });
 
         /* 浮尘 */
         drawPoints(dust, mvTree, { time: time, form: 1, scatter: 0, sway: 0.05, twinkle: 0.4, bright: 0.55, alpha: 0.8 });
 
-        /* 爱心树顶：光晕 + 本体 */
-        drawPoints(heart, mvHeartEff, { time: time, form: form, sizeMul: 3.2, bright: 0.11, pulse: heartPulse, twinkle: 0.12 });
-        drawPoints(heart, mvHeartEff, { time: time, form: form, sizeMul: 1.0, bright: 0.62, pulse: heartPulse, twinkle: 0.12 });
+        /* 树顶四角星：大光晕 + 本体 */
+        drawPoints(topper, mvTopEff, { time: time, form: form, sizeMul: 4.5, bright: 0.10, pulse: topPulse, twinkle: 0.12 });
+        drawPoints(topper, mvTopEff, { time: time, form: form, sizeMul: 1.1, bright: 1.15, pulse: topPulse, twinkle: 0.12 });
 
         /* 星芒 */
         gl.useProgram(spProg.pr);
@@ -2377,25 +2569,24 @@
         gl.drawArrays(gl.POINTS, 0, sparkles.n);
         unbindSystem();
 
-        /* 照片贴片（普通混合，内部切回加色混合给飘雪） */
-        drawPhotos(viewM, eye, yawEff, time);
+        /* 两侧烟花（定时绽放，着色器内按起始时刻自动显隐） */
+        gl.useProgram(fwProg.pr);
+        var FU = fwProg.U;
+        gl.uniformMatrix4fv(FU.uProj, false, view.proj);
+        gl.uniformMatrix4fv(FU.uMV, false, mvTree);
+        gl.uniform1f(FU.uTime, time);
+        gl.uniform1f(FU.uScale, view.scaleF);
+        var fwSizes = [3, 3, 3, 1, 1, 1];
+        for (var fi = 0; fi < 6; fi++) {
+          gl.bindBuffer(gl.ARRAY_BUFFER, fwBufs[fi]);
+          gl.enableVertexAttribArray(fi);
+          gl.vertexAttribPointer(fi, fwSizes[fi], gl.FLOAT, false, 0, 0);
+        }
+        gl.drawArrays(gl.POINTS, 0, fwData.n);
+        for (var fj = 0; fj < 6; fj++) gl.disableVertexAttribArray(fj);
 
-        /* 飘雪 */
-        gl.useProgram(snowProg.pr);
-        var NU = snowProg.U;
-        gl.uniformMatrix4fv(NU.uProj, false, view.proj);
-        gl.uniformMatrix4fv(NU.uMV, false, viewM);
-        gl.uniform1f(NU.uTime, time);
-        gl.uniform1f(NU.uScale, view.scaleF);
-        gl.bindBuffer(gl.ARRAY_BUFFER, snowBufs[0]);
-        gl.enableVertexAttribArray(0);
-        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, snowBufs[1]);
-        gl.enableVertexAttribArray(1);
-        gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 0, 0);
-        gl.drawArrays(gl.POINTS, 0, snowData.n);
-        gl.disableVertexAttribArray(0);
-        gl.disableVertexAttribArray(1);
+        /* 照片贴片（普通混合，内部切回加色混合） */
+        drawPhotos(viewM, eye, yawEff, time);
       }
       requestAnimationFrame(frame);
     </script>
