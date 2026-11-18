@@ -286,6 +286,18 @@
       #camSteps .st-fail { color: #ff9d9d; }
       #camSteps .st-detail { display: block; margin-top: 2px; color: rgba(255, 157, 157, 0.9); font-size: 11.5px; }
 
+      /* 内置照片加载诊断行（与上方手势步骤行同处一个日志区，样式保持低调） */
+      #photoDiag {
+        display: none;
+        text-align: center;
+        font-size: 12px;
+        letter-spacing: 0.03em;
+        color: rgba(205, 212, 255, 0.75);
+        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+        word-break: break-word;
+      }
+      #photoDiag.ok { color: #8fe6a8; }
+
       /* 摄像头受限 / 失败说明面板 */
       #camHelp {
         position: fixed;
@@ -414,6 +426,7 @@
         <span class="privacy">摄像头画面只在本机识别，不会上传</span>
       </div>
       <div id="camSteps" aria-live="polite"></div>
+      <div id="photoDiag" aria-live="polite"></div>
       <div class="brow">
         <div class="hint">拖动旋转 · 滚动 / 双指缩放 · 点照片放大</div>
         <div class="controls">
@@ -1283,8 +1296,23 @@
 
       /* ----- 内置照片：可选同目录文件 photos-data.js -----
          定义 window.BUILTIN_PHOTOS = [dataURI, ...]
-         异步加载，不阻塞首帧；缺失/失败/超时静默回退到节日卡。
-         若用户已上传照片，则不覆盖用户照片。 */
+         由正文末尾的动态加载器拉取（带缓存戳、失败/超时自动重试、
+         不删脚本，晚到的加载结果由轮询兜底应用）。
+         ?v=3 缓存戳用于绕开「文件部署之前浏览器缓存下来的 404」。
+         文件缺失/失败时回退到节日卡；若用户已上传照片，则不覆盖。
+         加载结果会写一行低调诊断到日志区（#photoDiag）并打 console。 */
+      var builtinSettled = false;
+
+      function photoDiag(msg, ok) {
+        try { console.info("[builtin-photos] " + msg); } catch (e) {}
+        var el = document.getElementById("photoDiag");
+        if (el) {
+          el.textContent = msg;
+          el.className = ok ? "ok" : "";
+          el.style.display = "block";
+        }
+      }
+
       function applyBuiltinPhotos(dataUris) {
         if (photosSource === "user") return;
         if (!dataUris || !dataUris.length) return;
@@ -1295,8 +1323,9 @@
           if (++done !== capped.length) return;
           var list = [];
           for (var j = 0; j < loaded.length; j++) if (loaded[j]) list.push(loaded[j]);
-          if (!list.length) return;
+          if (!list.length) { photoDiag("内置照片：加载失败，继续使用节日卡"); return; }
           if (photosSource === "user") return;
+          photoDiag("内置照片：已加载 " + list.length + " 张", true);
           setPhotos(list, "builtin");
         }
         capped.forEach(function (uri, idx) {
@@ -1318,41 +1347,72 @@
         });
       }
 
+      // BUILTIN_PHOTOS 已就绪则立即应用；返回是否已应用
+      function builtinApply() {
+        if (builtinSettled) return true;
+        if (window.BUILTIN_PHOTOS && Object.prototype.toString.call(window.BUILTIN_PHOTOS) === "[object Array]" && window.BUILTIN_PHOTOS.length) {
+          builtinSettled = true;
+          applyBuiltinPhotos(window.BUILTIN_PHOTOS);
+          return true;
+        }
+        return false;
+      }
+
       function loadBuiltinPhotos() {
         if (builtinLoadStarted) return;
         builtinLoadStarted = true;
-        // Already defined (e.g. inlined) — use directly
-        if (window.BUILTIN_PHOTOS && window.BUILTIN_PHOTOS.length) {
-          applyBuiltinPhotos(window.BUILTIN_PHOTOS);
-          return;
-        }
-        var settled = false;
-        var script = document.createElement("script");
-        script.src = "photos-data.js";
-        script.async = true;
-        var timer = setTimeout(function () {
-          if (settled) return;
-          settled = true;
-          // Timeout: silent fallback to festival cards
-          try { if (script.parentNode) script.parentNode.removeChild(script); } catch (e) {}
-        }, 8000);
-        script.onload = function () {
-          if (settled) return;
-          settled = true;
-          clearTimeout(timer);
-          try {
-            if (window.BUILTIN_PHOTOS && Object.prototype.toString.call(window.BUILTIN_PHOTOS) === "[object Array]" && window.BUILTIN_PHOTOS.length) {
-              applyBuiltinPhotos(window.BUILTIN_PHOTOS);
+        // BUILTIN_PHOTOS 若已就绪（如被其它方式提前引入）— 直接用
+        if (builtinApply()) return;
+        photoDiag("内置照片：正在加载…");
+        var attempts = 0;
+        function tryLoad() {
+          attempts++;
+          var script = document.createElement("script");
+          // ?v=3 绕开部署前缓存的 404；重试时再加随机戳强制回源
+          script.src = "photos-data.js?v=3" + (attempts > 1 ? "&r=" + Date.now() : "");
+          script.async = true;
+          var done = false;
+          var timer = setTimeout(function () {
+            if (done) return;
+            done = true;
+            // 超时不删除脚本、也不放弃：它若晚到，执行后轮询仍会应用；
+            // 同时再补发一次带新缓存戳的请求。
+            if (attempts < 3) {
+              photoDiag("内置照片：加载较慢，正在重试（第 " + (attempts + 1) + " 次）…");
+              tryLoad();
+            } else {
+              photoDiag("内置照片：加载超时，继续使用节日卡");
             }
-          } catch (e) { /* silent fallback */ }
-        };
-        script.onerror = function () {
-          if (settled) return;
-          settled = true;
-          clearTimeout(timer);
-          // Missing file (e.g. Muse-hosted version): silent fallback
-        };
-        document.head.appendChild(script);
+          }, 20000);
+          script.onload = function () {
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            if (!builtinApply()) {
+              builtinSettled = true;
+              photoDiag("内置照片：文件已加载但没有可用数据，继续使用节日卡");
+            }
+          };
+          script.onerror = function () {
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            if (attempts < 3) {
+              setTimeout(tryLoad, 1200);
+            } else {
+              photoDiag("内置照片：未找到 photos-data.js，继续使用节日卡");
+            }
+          };
+          document.head.appendChild(script);
+        }
+        tryLoad();
+        // 兜底轮询：超时后晚到的脚本一旦执行、让 BUILTIN_PHOTOS
+        // 出现，立即应用；最多等约 90 秒。
+        var pollCount = 0;
+        var poll = setInterval(function () {
+          if (builtinSettled || ++pollCount > 45) { clearInterval(poll); return; }
+          builtinApply();
+        }, 2000);
       }
 
       /* ----- 上传照片：只在本机读取 ----- */
