@@ -477,8 +477,8 @@
       "use strict";
       /* ============================================================
          粒子圣诞树 — 粉色闪粉粒子树（参考抖音 @Zyw0605_ 的粒子引擎演示）
-         粉色粒子树身 / 螺旋光带 / 白色四角星树顶 / 轨道环树基 /
-         开场星爆 / 两侧烟花 / 代码纹理背景 / 浮尘
+         粉色粒子树身（主体）/ 单条四圈螺旋光带（点缀，背面被深度遮挡）/ 树身金色铃铛点缀 / 粉色爱心树顶 /
+         轨道环树基 / 开场时空隧道 / 形成后背景流星与烟花 / 代码纹理背景（全程）/ 浮尘
          + 手势识别（MediaPipe Hands，本地运行）+ 照片贴片
          ============================================================ */
 
@@ -678,7 +678,7 @@
           var droop = 0.10 * smoothstep(0.78, 1.0, s) * (0.5 + rBot / BASE_R * 0.7);
           var y = tierTopY - s * tierH - droop;
           var ang = Math.random() * Math.PI * 2;
-          var vol = !rim && Math.random() < 0.38; // 内部体积粒子：填满树身，避免空心透光
+          var vol = !rim && Math.random() < 0.52; // 内部体积粒子：过半占比，填满树身成近实心闪粉团
           var rr = r * rand(0.80, 1.0); // 体积感：内层略暗
           if (rim) rr = r * rand(1.0, 1.04);
           else if (vol) rr = r * (0.12 + 0.88 * Math.pow(Math.random(), 0.6));
@@ -692,12 +692,12 @@
           bright *= rand(0.82, 1.12);
           if (vol) bright *= 0.78;
           var col = [c[0] * bright, c[1] * bright, c[2] * bright];
-          var size = rand(0.011, 0.022); // 细密小点，闪粉质感
-          if (vol) size = rand(0.010, 0.019);
+          var size = rand(0.0095, 0.019); // 细密小点，闪粉质感（粒子数提高后点径略收，保持细颗粒）
+          if (vol) size = rand(0.009, 0.017);
           if (Math.random() < 0.05) { // 近白粉色闪点
             var fb = rand(1.15, 1.5);
             col = [1.02 * fb, 0.88 * fb, 0.97 * fb];
-            size = rand(0.02, 0.03);
+            size = rand(0.017, 0.026);
           }
           setP(sys, i, shellStart(), p1, cloudTarget(), col, size);
           sys.delay[i] = 0.14 + h * 0.34 + Math.random() * 0.05; // 下层先落位、上层后到
@@ -757,56 +757,50 @@
         return sys;
       }
 
-      /* ----- 螺旋光带：更亮更密的粒子沿螺旋线绕树 3.5 圈（招牌元素） ----- */
+      /* ----- 螺旋光带：一条连续螺旋带，自下而上绕树 4 圈、螺距均匀，
+         从正面看它 4 次横穿树面；贴在树表之外约 0.10，细而暗，只作花环
+         点缀——主体永远是粒子树身；背面带段由遮挡体深度裁掉（见渲染段） ----- */
       function buildRibbon(count) {
         var sys = makeSystem(count);
         for (var i = 0; i < count; i++) {
-          var t = Math.random(); // 0 树底 → 1 树顶
-          var ang = t * Math.PI * 2 * 3.5 + rand(-0.15, 0.15);
-          var y = BASE_Y + 0.06 + t * (TREE_H - 0.20) + rand(-0.03, 0.03);
+          var t = Math.random(); // 0 树底 → 1 树顶（沿这唯一一条带均匀分布）
+          var ang = t * Math.PI * 2 * 4 + rand(-0.016, 0.016); // 一条带绕 4 圈，抖动收紧：带身细而连续
+          var y = BASE_Y + 0.05 + t * (TREE_H - 0.16) + rand(-0.008, 0.008);
           var h = clamp((y - BASE_Y) / TREE_H, 0, 1);
-          var r = radiusAt(h) * 1.07 + rand(-0.02, 0.05);
+          var r = radiusAt(h) + 0.10 + rand(-0.006, 0.006); // 贴在树表之外约 0.10
           var p1 = [Math.cos(ang) * r, y, Math.sin(ang) * r];
-          var b = rand(1.0, 1.6);
-          var col = [1.05 * b, 0.72 * b, 0.92 * b];
-          setP(sys, i, shellStart(), p1, cloudTarget(), col, rand(0.02, 0.034));
+          var b = rand(0.72, 1.08);
+          var col = [1.07 * b, 0.79 * b, 0.97 * b]; // 亮度低于树身芯光，只作花环点缀
+          setP(sys, i, shellStart(), p1, cloudTarget(), col, rand(0.013, 0.021));
           sys.delay[i] = 0.24 + t * 0.34 + Math.random() * 0.03; // 光带自下而上最后绕完
         }
         return sys;
       }
 
-      /* ----- 树顶：亮白色四角星（✦）+ 四向小射线光点，正对镜头不随树旋转 ----- */
-      var STAR_CY = TIP_Y + 0.34;
+      /* ----- 树顶：粉色爱心（参数曲线填充），正对镜头不随树旋转，
+         形成末段轻轻落位淡入 + 呼吸脉动，无点火闪光 ----- */
+      var HEART_CY = TIP_Y + 0.34;
       function buildTopper(count) {
         var sys = makeSystem(count);
+        var S = 0.0215; // 心形曲线缩放：宽约 ±0.344、高约 0.62
         for (var i = 0; i < count; i++) {
-          var x, y, z;
-          if (Math.random() < 0.10) {
-            // 上下左右四条主射线上的稀疏光点
-            var axis = (Math.random() * 4) | 0;
-            var d = rand(0.34, 0.62);
-            x = axis === 0 ? d : axis === 1 ? -d : rand(-0.015, 0.015);
-            y = axis === 2 ? d : axis === 3 ? -d : rand(-0.015, 0.015);
-            z = rand(-0.02, 0.02);
-          } else {
-            // 四角星填充：半径随角度呈四瓣轮廓（|cos 2θ| 在四向最大）
-            var th = Math.random() * Math.PI * 2;
-            var prof = 0.20 + 0.80 * Math.pow(Math.abs(Math.cos(2 * th)), 0.75);
-            var rr = 0.34 * prof * Math.sqrt(Math.random());
-            x = Math.cos(th) * rr;
-            y = Math.sin(th) * rr;
-            z = rand(-1, 1) * 0.045 * (1 - rr / 0.36);
-          }
-          var p1 = [x, STAR_CY + y, z];
-          var dc = clamp(Math.hypot(x, y) / 0.34, 0, 1);
-          var core = smoothstep(0.6, 0.0, dc);
+          var th = Math.random() * Math.PI * 2;
+          var hx = 16 * Math.pow(Math.sin(th), 3);
+          var hy = 13 * Math.cos(th) - 5 * Math.cos(2 * th) - 2 * Math.cos(3 * th) - Math.cos(4 * th);
+          var cx = 0, cy = -0.03; // 曲线质心近似（原始坐标系）
+          var f = Math.sqrt(Math.random()); // 向心填充：f=0 心、f=1 轮廓
+          var x = (cx + (hx - cx) * f) * S;
+          var y = (cy + (hy - cy) * f) * S;
+          var z = rand(-1, 1) * 0.05 * (1 - f * f);
+          var p1 = [x, HEART_CY + y, z];
+          var core = smoothstep(0.75, 0.0, f); // 心部近白粉、边缘饱和粉
           var col = [
-            lerp(1.02, 1.30, core),
-            lerp(0.94, 1.24, core),
-            lerp(1.02, 1.28, core)
+            lerp(1.06, 1.28, core),
+            lerp(0.42, 0.92, core),
+            lerp(0.70, 1.02, core)
           ];
-          setP(sys, i, shellStart(), p1, cloudTarget(), col, rand(0.014, 0.026));
-          sys.delay[i] = 0.76 + Math.random() * 0.06; // 树顶星最后点亮
+          setP(sys, i, shellStart(), p1, cloudTarget(), col, rand(0.013, 0.024));
+          sys.delay[i] = 0.76 + Math.random() * 0.05; // 爱心最后轻轻淡入
         }
         return sys;
       }
@@ -829,6 +823,26 @@
           setP(sys, i, shellStart(), p1, cloudTarget(), col.slice(), size);
           sys.phase[i] = rand(0, Math.PI * 2);
           sys.delay[i] = 0.20 + h * 0.38 + Math.random() * 0.05;
+        }
+        return sys;
+      }
+
+      /* ----- 金色铃铛 / 挂饰：贴在树身表面的暖金大点，像圣诞树上挂的铃铛，
+         明显大于树叶粒子、各自轻轻闪烁；随树身一起形成 / 散开，
+         绘制时与光带共用遮挡体深度——背面的金点被树身挡掉，只见正面 ----- */
+      function buildOrnaments(count) {
+        var sys = makeSystem(count);
+        for (var i = 0; i < count; i++) {
+          var h = Math.pow(Math.random(), 0.85); // 全高分布，略偏下半
+          var y = BASE_Y + 0.06 + h * (TREE_H - 0.22);
+          var hh = clamp((y - BASE_Y) / TREE_H, 0, 1);
+          var r = radiusAt(hh) * rand(0.99, 1.05); // 贴在表面、略微探出
+          var ang = Math.random() * Math.PI * 2; // 全角度均匀
+          var p1 = [Math.cos(ang) * r, y, Math.sin(ang) * r];
+          var gb = rand(0.85, 1.3); // #ffd98a 暖金，带个体亮度差
+          var col = [1.30 * gb, 1.02 * gb, 0.52 * gb];
+          setP(sys, i, shellStart(), p1, cloudTarget(), col, rand(0.030, 0.052));
+          sys.delay[i] = 0.16 + hh * 0.36 + Math.random() * 0.05; // 随树身自下而上落位
         }
         return sys;
       }
@@ -866,16 +880,24 @@
         return sys;
       }
 
-      /* ----- 两侧烟花：6 组定时绽放（64 秒一轮），位置/速度/时刻全在着色器里算 ----- */
+      /* ----- 背景烟花：17 组定时绽放（64 秒一轮，约每 3.8 秒一朵，
+         其中两处近乎同时双开，粉/金/白），形成动画完成后才由 uGate
+         放行，位置/速度/时刻全在着色器里算 ----- */
       var FW_CYCLE = 64;
       function buildFireworks() {
         var bursts = [
-          { o: [-2.9, 2.35, -0.9], s: 7 }, { o: [3.1, 2.70, -1.1], s: 19 },
-          { o: [-3.3, 1.90, -0.6], s: 31 }, { o: [2.8, 2.10, -1.3], s: 43 },
-          { o: [3.4, 2.90, -0.8], s: 54 }, { o: [-2.7, 2.80, -1.2], s: 58 }
+          { o: [-3.4, 2.9, -2.4], s: 2 }, { o: [3.6, 3.3, -2.8], s: 5 },
+          { o: [-4.2, 2.2, -2.0], s: 9 }, { o: [4.3, 2.6, -3.2], s: 9.4 },
+          { o: [-2.6, 3.6, -3.0], s: 13 }, { o: [2.9, 2.1, -2.2], s: 17 },
+          { o: [-3.9, 3.1, -2.6], s: 21 }, { o: [4.0, 3.5, -2.5], s: 25 },
+          { o: [-3.1, 2.5, -3.4], s: 29 }, { o: [3.3, 3.0, -2.6], s: 33 },
+          { o: [-4.4, 3.4, -2.8], s: 37 }, { o: [2.5, 2.4, -3.1], s: 41 },
+          { o: [-2.8, 2.7, -2.3], s: 45 }, { o: [4.4, 2.9, -3.0], s: 45.5 },
+          { o: [-3.6, 3.2, -3.2], s: 50 }, { o: [3.0, 3.6, -2.4], s: 55 },
+          { o: [-4.0, 2.4, -2.7], s: 60 }
         ];
-        var palette = [[1.0, 0.75, 0.90], [1.05, 0.95, 1.0], [1.0, 0.55, 0.80], [0.95, 0.80, 1.0]];
-        var per = 26, n = bursts.length * per;
+        var palette = [[1.0, 0.75, 0.90], [1.05, 0.95, 1.0], [1.0, 0.55, 0.80], [1.0, 0.78, 0.42], [0.95, 0.80, 1.0]];
+        var per = 110, n = bursts.length * per;
         var origin = new Float32Array(n * 3), vel = new Float32Array(n * 3),
             col = new Float32Array(n * 3), start = new Float32Array(n),
             life = new Float32Array(n), size = new Float32Array(n);
@@ -886,40 +908,106 @@
             origin.set(bursts[b].o, idx * 3);
             var th = Math.random() * Math.PI * 2;
             var ph = Math.acos(rand(-1, 1));
-            var sp = rand(0.45, 1.1) * Math.sin(ph);
-            vel.set([Math.cos(th) * sp, Math.cos(ph) * rand(0.45, 1.1), Math.sin(th) * sp], idx * 3);
-            var cb = rand(0.7, 1.15);
+            var sp = rand(0.7, 1.9) * Math.sin(ph);
+            vel.set([Math.cos(th) * sp, Math.cos(ph) * rand(0.7, 1.9), Math.sin(th) * sp], idx * 3);
+            var cb = rand(0.85, 1.5);
             col.set([c[0] * cb, c[1] * cb, c[2] * cb], idx * 3);
-            start[idx] = bursts[b].s + rand(0, 0.25);
-            life[idx] = rand(1.1, 1.7);
-            size[idx] = rand(0.02, 0.04);
+            start[idx] = bursts[b].s + rand(0, 0.3);
+            life[idx] = rand(1.6, 2.4);
+            size[idx] = rand(0.03, 0.075);
           }
         }
         return { n: n, data: [origin, vel, col, start, life, size] };
       }
 
-      /* ----- 开场星爆：放射线条（每条 2 个顶点）+ 中心光核点 ----- */
-      var BURST_N = 150, CORE_N = 26;
-      function buildBurst() {
-        var dir = new Float32Array(BURST_N * 2 * 3), end = new Float32Array(BURST_N * 2),
-            len = new Float32Array(BURST_N * 2);
-        for (var i = 0; i < BURST_N; i++) {
-          var th = Math.random() * Math.PI * 2;
-          var vx = Math.cos(th), vy = Math.sin(th) * 0.85, vz = rand(-0.3, 0.3);
-          var vl = Math.hypot(vx, vy, vz) || 1;
-          var L = rand(1.8, 5.4);
+      /* ----- 开场时空隧道：数百条细光线从中心向外加速冲过镜头（每条 2 个顶点） ----- */
+      function buildTunnel(count) {
+        var data = new Float32Array(count * 2 * 4), rad = new Float32Array(count * 2),
+            tint = new Float32Array(count * 2);
+        for (var i = 0; i < count; i++) {
+          var ang = Math.random() * Math.PI * 2;
+          var off = Math.random();
+          var spd = rand(0.7, 1.5);
+          var rd = rand(0.5, 1.25), tn = Math.random();
           for (var e = 0; e < 2; e++) {
-            dir.set([vx / vl, vy / vl, vz / vl], (i * 2 + e) * 3);
-            end[i * 2 + e] = e;
-            len[i * 2 + e] = L;
+            data.set([ang, off, spd, e], (i * 2 + e) * 4);
+            rad[i * 2 + e] = rd;
+            tint[i * 2 + e] = tn;
           }
         }
+        return { n: count, data: data, rad: rad, tint: tint };
+      }
+
+      /* ----- 隧道细尘：与光线同场的细小光点，一起向镜头呼啸冲过 ----- */
+      function buildTunnelDust(count) {
+        var data = new Float32Array(count * 4), rad = new Float32Array(count), size = new Float32Array(count);
+        for (var i = 0; i < count; i++) {
+          data.set([Math.random() * Math.PI * 2, Math.random(), rand(0.7, 1.5), 0], i * 4);
+          rad[i] = rand(0.4, 1.3);
+          size[i] = rand(0.012, 0.034);
+        }
+        return { n: count, data: data, rad: rad, size: size };
+      }
+
+      /* ----- 开场中心光核：小而暗的一簇辉光点（只作隧道深处的微光） ----- */
+      var CORE_N = 26;
+      function buildCore() {
         var cPos = new Float32Array(CORE_N * 3), cSize = new Float32Array(CORE_N);
         for (var j = 0; j < CORE_N; j++) {
-          cPos.set([rand(-0.05, 0.05), 1.5 + rand(-0.05, 0.05), rand(-0.05, 0.05)], j * 3);
-          cSize[j] = rand(1.2, 2.6);
+          cPos.set([rand(-0.04, 0.04), 1.5 + rand(-0.04, 0.04), rand(-0.04, 0.04)], j * 3);
+          cSize[j] = rand(0.45, 1.05);
         }
-        return { dir: dir, end: end, len: len, cPos: cPos, cSize: cSize };
+        return { cPos: cPos, cSize: cSize };
+      }
+
+      /* ----- 遮挡体几何：与树身同轴的圆锥台网格（半径为树表的 93%，略在表面之内），
+         只写深度不写颜色，让螺旋带的背面段被真实遮挡 ----- */
+      function buildOccluder() {
+        var SEG = 40, RINGS = 20;
+        var pos = [], idx = [];
+        for (var s = 0; s <= RINGS; s++) {
+          var h = s / RINGS;
+          var y = BASE_Y + 0.02 + h * (TREE_H - 0.10);
+          var hh = clamp((y - BASE_Y) / TREE_H, 0, 1);
+          var r = Math.max(0.012, radiusAt(hh) * 0.93);
+          for (var k = 0; k <= SEG; k++) {
+            var a = k / SEG * Math.PI * 2;
+            pos.push(Math.cos(a) * r, y, Math.sin(a) * r);
+          }
+        }
+        for (var s2 = 0; s2 < RINGS; s2++) for (var k2 = 0; k2 < SEG; k2++) {
+          var a0 = s2 * (SEG + 1) + k2, b0 = a0 + SEG + 1;
+          idx.push(a0, b0, a0 + 1, b0, b0 + 1, a0 + 1);
+        }
+        return { pos: new Float32Array(pos), idx: new Uint16Array(idx) };
+      }
+
+      /* ----- 背景流星：8 颗错峰循环（周期 8 秒，间隔更短、偶有双星
+         近乎同时划过），每颗 42 个拖尾点，头亮尾淡、斜穿背景天空；
+         位置/轨迹全在着色器里按 uTime 算 ----- */
+      function buildMeteors() {
+        var defs = [
+          { o: [-4.6, 4.3, -7.0], v: [3.4, -2.0, 0], off: 0.0 },
+          { o: [4.8, 3.9, -8.0], v: [-3.8, -1.7, 0], off: 1.1 },
+          { o: [-1.5, 4.6, -6.0], v: [2.8, -2.2, 0], off: 2.4 },
+          { o: [5.2, 4.5, -7.5], v: [-3.0, -2.4, 0], off: 3.2 },
+          { o: [-5.0, 3.4, -8.5], v: [3.9, -1.5, 0], off: 4.3 },
+          { o: [2.2, 4.7, -6.5], v: [-3.3, -2.1, 0], off: 5.2 },
+          { o: [-3.8, 4.8, -7.2], v: [3.1, -2.3, 0], off: 6.3 },
+          { o: [5.4, 3.6, -6.8], v: [-3.6, -1.9, 0], off: 7.2 }
+        ];
+        var TRAIL = 42, n = defs.length * TRAIL;
+        var origin = new Float32Array(n * 3), vel = new Float32Array(n * 3), param = new Float32Array(n * 4);
+        var idx = 0;
+        for (var m = 0; m < defs.length; m++) {
+          for (var j = 0; j < TRAIL; j++, idx++) {
+            var lag = j / (TRAIL - 1);
+            origin.set(defs[m].o, idx * 3);
+            vel.set(defs[m].v, idx * 3);
+            param.set([defs[m].off, lag, 0.16 - 0.11 * lag, rand(0.75, 1.1)], idx * 4);
+          }
+        }
+        return { n: n, data: [origin, vel, param] };
       }
 
       /* ----- 开场扩散球壳：光核之后粒子先涨成一层球壳，再螺旋汇聚成树 ----- */
@@ -952,6 +1040,7 @@
         "varying vec2 vUv;",
         "uniform float uTime;",
         "uniform vec2 uHalo;",
+        "uniform sampler2D uCodeTex;",
         "float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453123); }",
         "float noise(vec2 p){",
         "  vec2 i = floor(p), f = fract(p);",
@@ -963,18 +1052,6 @@
         "  float v = 0.0, a = 0.55;",
         "  for(int k=0;k<4;k++){ v += a*noise(p); p = p*2.13 + 17.7; a *= 0.5; }",
         "  return v;",
-        "}",
-        // 伪代码纹理：等宽字格 + 每行随机缩进/长度 + 词间空缺（不可读，仅氛围）
-        "float codeField(vec2 uv){",
-        "  vec2 g = uv * vec2(110.0, 150.0);",
-        "  vec2 id = floor(g);",
-        "  vec2 f = fract(g);",
-        "  float indent = floor(hash(vec2(id.y, 7.31)) * 16.0);",
-        "  float len = 10.0 + floor(hash(vec2(id.y, 13.73)) * 60.0);",
-        "  float inLine = step(indent, id.x) * step(id.x, indent + len);",
-        "  float ch = step(0.38, hash(id + 3.17));",
-        "  float glyph = step(0.28, f.y) * step(f.y, 0.72) * step(0.12, f.x) * step(f.x, 0.88);",
-        "  return inLine * ch * glyph;",
         "}",
         "void main(){",
         "  vec2 uv = vUv;",
@@ -988,10 +1065,12 @@
         "  float nR = fbm(uv*vec2(3.4,3.8) + vec2(8.3,2.9) - uTime*0.003);",
         "  float mR = smoothstep(0.52,0.95,nR) * smoothstep(0.25,0.95,uv.x) * smoothstep(0.10,0.6,uv.y);",
         "  col += vec3(0.30,0.10,0.55) * mR * 0.38;",
-        // 左右边缘的代码纹理列（粒子引擎氛围）
-        "  float edge = clamp(smoothstep(0.34,0.14,uv.x) + smoothstep(0.66,0.86,uv.x), 0.0, 1.0);",
-        "  float code = codeField(uv) * 0.85 + codeField(uv*1.7 + 0.37) * 0.5;",
-        "  col += vec3(0.72,0.52,0.98) * code * edge * 0.13;",
+        // 左右边缘的真实代码文字列（画布纹理里的真字，非伪字形）：
+        // 纹理本身已把代码排在左右两列、中央留空，缓慢上滚，全程可见
+        "  float edge = clamp(smoothstep(0.44,0.18,uv.x) + smoothstep(0.56,0.74,uv.x), 0.0, 1.0);",
+        "  vec2 cuv = vec2(uv.x, uv.y - uTime*0.008);",
+        "  vec4 codeTex = texture2D(uCodeTex, cuv);",
+        "  col += codeTex.rgb * codeTex.a * edge * 0.50;",
         // 树顶星后的粉色光晕
         "  float d = length((uv - uHalo)*vec2(1.35,1.0));",
         "  col += vec3(0.90,0.35,0.62) * exp(-d*d*9.0) * 0.30;",
@@ -999,7 +1078,7 @@
         // 底部微光 + 暗角
         "  col += vec3(0.16,0.06,0.26) * smoothstep(0.30,0.0,uv.y) * 0.30;",
         "  float vig = smoothstep(1.25, 0.45, length(uv-vec2(0.5,0.46)));",
-        "  col *= 0.55 + 0.45*vig;",
+        "  col *= 0.72 + 0.28*vig;", // 暗角收轻，避免把两侧代码列压到看不见
         "  gl_FragColor = vec4(col, 1.0);",
         "}"
       ].join("\n");
@@ -1064,6 +1143,7 @@
         "  vec2 q = gl_PointCoord - 0.5;",
         "  float d2 = dot(q,q)*4.0;",
         "  float a = (exp(-d2*5.0) + exp(-d2*1.7)*0.32) * vA;",
+        "  a *= 1.0 - smoothstep(0.45, 1.0, d2);", // 辉光在贴图内提前衰减到 0，杜绝方形框边
         "  if(a < 0.004) discard;",
         "  gl_FragColor = vec4(vColor * a, 1.0);",
         "}"
@@ -1118,34 +1198,67 @@
         "}"
       ].join("\n");
 
-      // 开场星爆线条：从树心向外放射的细光线，随 uT 伸长并淡出
-      var BURST_VERT = [
-        "attribute vec3 aDir;",
-        "attribute float aEnd;",
-        "attribute float aLen;",
+      // 开场时空隧道：每条光线都是穿过光核正中心 (0,1.5,0) 的一条三维射线——
+      // 头尾两端共用同一方向 dir、只差距离 s，投影后必然从光核中心放射；
+      // 加速曲线放缓，呈平稳庄重的穿越感，无旋拧
+      var TUNNEL_VERT = [
+        "attribute vec4 aData;", // x 角度 / y 相位偏移 / z 速度 / w 端点（0 头 1 尾）
+        "attribute float aRad;",
+        "attribute float aTint;",
         "uniform mat4 uProj;",
         "uniform mat4 uMV;",
         "uniform float uT;",
+        "varying vec3 vColor;",
         "varying float vA;",
         "void main(){",
-        "  float e = 1.0 - pow(1.0 - uT, 3.0);",
-        "  float head = mix(0.15, aLen, e);",
-        "  float dist = mix(head*0.45, head, aEnd);",
-        "  vec3 pos = vec3(0.0, 1.5, 0.0) + aDir * dist;",
-        "  vA = (1.0 - uT) * (0.30 + 0.70*aEnd);",
+        "  float prog = uT*0.50 + uT*uT*uT*0.85;", // 缓加速：起步稳、后段才提速，最高速远低于旧版
+        "  float ph = fract(aData.y + prog * aData.z);",
+        "  float p = max(ph - aData.w * (0.05 + 0.10*ph), 0.0);", // 尾端沿同一射线滞后 → 线段仍指向光核中心
+        "  float s = pow(p, 1.3) * 6.5 * aRad;",
+        "  vec3 dir = vec3(cos(aData.x)*0.62, sin(aData.x)*0.55, 1.0);", // 方向只由角度决定，头尾一致
+        "  vec3 pos = vec3(0.0, 1.5, 0.0) + dir * s;", // 起点就是光核正中心，与光核精灵同点
+        "  vColor = mix(vec3(1.0, 0.50, 0.82), vec3(1.06, 0.95, 1.02), aTint);",
+        "  float env = smoothstep(0.02, 0.16, ph) * (1.0 - smoothstep(0.75, 0.97, ph));",
+        "  vA = env * mix(1.0, 0.16, aData.w) * smoothstep(0.0, 0.05, uT) * (1.0 - smoothstep(0.78, 1.0, uT));",
         "  gl_Position = uProj * uMV * vec4(pos, 1.0);",
         "}"
       ].join("\n");
 
-      var BURST_FRAG = [
+      var TUNNEL_FRAG = [
         "precision mediump float;",
+        "varying vec3 vColor;",
         "varying float vA;",
         "void main(){",
-        "  gl_FragColor = vec4(vec3(1.0, 0.82, 0.95) * vA, 1.0);",
+        "  gl_FragColor = vec4(vColor * vA * 0.9, 1.0);",
         "}"
       ].join("\n");
 
-      // 开场星爆的中心光核：品红辉光点
+      // 隧道细尘点：与光线同一套射线公式（同源点、同缓加速），点状呈现（与 PT_FRAG 共用软点片元）
+      var TUNNEL_PT_VERT = [
+        "attribute vec4 aData;", // x 角度 / y 相位偏移 / z 速度 / w 未用
+        "attribute float aRad;",
+        "attribute float aSize;",
+        "uniform mat4 uProj;",
+        "uniform mat4 uMV;",
+        "uniform float uT, uScale;",
+        "varying vec3 vColor;",
+        "varying float vA;",
+        "void main(){",
+        "  float prog = uT*0.50 + uT*uT*uT*0.85;",
+        "  float ph = fract(aData.y + prog * aData.z);",
+        "  float s = pow(ph, 1.3) * 6.5 * aRad;",
+        "  vec3 dir = vec3(cos(aData.x)*0.62, sin(aData.x)*0.55, 1.0);",
+        "  vec3 pos = vec3(0.0, 1.5, 0.0) + dir * s;", // 同样从光核正中心出发
+        "  vColor = mix(vec3(1.0, 0.55, 0.84), vec3(1.05, 0.96, 1.02), fract(aData.x*2.39));",
+        "  float env = smoothstep(0.02, 0.16, ph) * (1.0 - smoothstep(0.75, 0.97, ph));",
+        "  vA = env * 0.55 * smoothstep(0.0, 0.05, uT) * (1.0 - smoothstep(0.78, 1.0, uT));",
+        "  vec4 mv = uMV * vec4(pos, 1.0);",
+        "  gl_Position = uProj * mv;",
+        "  gl_PointSize = clamp(aSize * uScale / max(0.1,-mv.z), 1.0, 40.0);",
+        "}"
+      ].join("\n");
+
+      // 开场中心光核：品红辉光点
       var CORE_VERT = [
         "attribute vec3 aPos;",
         "attribute float aSize;",
@@ -1168,7 +1281,8 @@
         "void main(){",
         "  vec2 q = gl_PointCoord - 0.5;",
         "  float d2 = dot(q,q)*4.0;",
-        "  float a = (exp(-d2*4.0) + exp(-d2*1.4)*0.4) * vA;",
+        "  float a = (exp(-d2*5.5) + exp(-d2*2.2)*0.30) * vA;",
+        "  a *= 1.0 - smoothstep(0.40, 0.95, d2);", // 边缘归零：光核再亮也不露方框
         "  if(a < 0.004) discard;",
         "  gl_FragColor = vec4(uColor * a, 1.0);",
         "}"
@@ -1210,7 +1324,7 @@
         "attribute float aSize;",
         "uniform mat4 uProj;",
         "uniform mat4 uMV;",
-        "uniform float uTime, uScale;",
+        "uniform float uTime, uScale, uGate;",
         "varying vec3 vColor;",
         "varying float vA;",
         "void main(){",
@@ -1219,7 +1333,7 @@
         "  bool dead = age < 0.0 || k > 1.0;",
         "  vec3 pos = aOrigin + aVel*age + vec3(0.0, -0.22, 0.0)*age*age;",
         "  vColor = aColor;",
-        "  vA = dead ? 0.0 : (1.0-k)*(1.0-k);",
+        "  vA = dead ? 0.0 : (1.0-k)*(1.0-k)*uGate;",
         "  vec4 mv = uMV * vec4(pos, 1.0);",
         "  gl_Position = dead ? vec4(0.0, 0.0, -3.0, 1.0) : uProj * mv;",
         "  gl_PointSize = dead ? 0.0 : clamp(aSize * uScale / max(0.1,-mv.z), 1.0, 42.0);",
@@ -1237,6 +1351,50 @@
         "  if(a < 0.004) discard;",
         "  gl_FragColor = vec4(vColor * a, 1.0);",
         "}"
+      ].join("\n");
+
+      // 背景流星：亮头 + 长拖尾斜穿天幕，uGate 控制「形成完成后才出现」
+      var METEOR_VERT = [
+        "attribute vec3 aOrigin;",
+        "attribute vec3 aVel;",
+        "attribute vec4 aParam;", // x 周期偏移 / y 拖尾滞后 0..1 / z 尺寸 / w 亮度
+        "uniform mat4 uProj;",
+        "uniform mat4 uMV;",
+        "uniform float uTime, uScale, uGate;",
+        "varying vec3 vColor;",
+        "varying float vA;",
+        "void main(){",
+        "  float DUR = 1.6;",
+        "  float lt = mod(uTime + aParam.x, 8.0);",
+        "  bool act = lt < DUR;",
+        "  float pr = clamp(lt / DUR, 0.0, 1.0);",
+        "  vec3 head = aOrigin + aVel * lt;",
+        "  vec3 pos = head - aVel * aParam.y * 0.5;",
+        "  float env = sin(3.14159 * pr);",
+        "  vA = act ? env * pow(1.0 - aParam.y, 1.6) * aParam.w * uGate : 0.0;",
+        "  vColor = mix(vec3(1.06, 0.99, 1.02), vec3(1.0, 0.60, 0.84), aParam.y);",
+        "  vec4 mv = uMV * vec4(pos, 1.0);",
+        "  gl_Position = act ? uProj * mv : vec4(0.0, 0.0, -3.0, 1.0);",
+        "  gl_PointSize = act ? clamp(aParam.z * (1.0 - aParam.y*0.72) * uScale / max(0.1,-mv.z), 1.0, 90.0) : 0.0;",
+        "}"
+      ].join("\n");
+
+      // 遮挡体：只写深度（颜色写入在绘制时关闭），uRad 随形成/散开缩放半径
+      var OCC_VERT = [
+        "attribute vec3 aPos;",
+        "uniform mat4 uProj;",
+        "uniform mat4 uMV;",
+        "uniform float uRad;",
+        "void main(){",
+        "  vec3 p = aPos;",
+        "  p.xz *= uRad;",
+        "  gl_Position = uProj * uMV * vec4(p, 1.0);",
+        "}"
+      ].join("\n");
+
+      var OCC_FRAG = [
+        "precision mediump float;",
+        "void main(){ gl_FragColor = vec4(0.0); }"
       ].join("\n");
 
       // 照片贴片：带纹理的四边形
@@ -1266,7 +1424,7 @@
          WebGL 初始化
          ============================================================ */
       var canvas = document.getElementById("scene");
-      var gl = canvas.getContext("webgl", { antialias: false, alpha: false, depth: false }) ||
+      var gl = canvas.getContext("webgl", { antialias: false, alpha: false, depth: true, stencil: false }) ||
                canvas.getContext("experimental-webgl");
       if (!gl) {
         document.getElementById("fallback").style.display = "flex";
@@ -1300,10 +1458,13 @@
       var bgProg = makeProgram(BG_VERT, BG_FRAG, ["aXY"]);
       var ptProg = makeProgram(PT_VERT, PT_FRAG, PT_ATTRS);
       var spProg = makeProgram(SP_VERT, SP_FRAG, PT_ATTRS);
-      var burstProg = makeProgram(BURST_VERT, BURST_FRAG, ["aDir", "aEnd", "aLen"]);
+      var tunnelProg = makeProgram(TUNNEL_VERT, TUNNEL_FRAG, ["aData", "aRad", "aTint"]);
       var coreProg = makeProgram(CORE_VERT, CORE_FRAG, ["aPos", "aSize"]);
       var shellProg = makeProgram(SHELL_VERT, PT_FRAG, ["aDir", "aColor", "aSize"]);
       var fwProg = makeProgram(FW_VERT, FW_FRAG, ["aOrigin", "aVel", "aColor", "aStart", "aLife", "aSize"]);
+      var tptProg = makeProgram(TUNNEL_PT_VERT, PT_FRAG, ["aData", "aRad", "aSize"]);
+      var meteorProg = makeProgram(METEOR_VERT, PT_FRAG, ["aOrigin", "aVel", "aParam"]);
+      var occProg = makeProgram(OCC_VERT, OCC_FRAG, ["aPos"]);
       var photoProg = makeProgram(PHOTO_VERT, PHOTO_FRAG, ["aXY", "aUV"]);
 
       function upload(sys) {
@@ -1330,17 +1491,18 @@
       }
 
       var isCoarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
-      var leafCount = isCoarse ? 62000 : 90000;
+      var leafCount = isCoarse ? 88000 : 140000;
 
       var leaves = upload(buildLeaves(leafCount));
       var trunk = upload(buildTrunk(1000));
       var ground = upload(buildGround(2600));
       var rings = upload(buildRings(2600));
-      var ribbon = upload(buildRibbon(4200));
+      var ribbon = upload(buildRibbon(5500));
       var topper = upload(buildTopper(2600));
       var dust = upload(buildDust(850));
       var stars = upload(buildStars(750));
       var sparkles = upload(buildSparkles(1150));
+      var ornaments = upload(buildOrnaments(isCoarse ? 260 : 340));
 
       var fwData = buildFireworks();
       var fwBufs = fwData.data.map(function (arr) {
@@ -1350,31 +1512,145 @@
         return b;
       });
 
-      var burstData = buildBurst();
+      var meteorData = buildMeteors();
+      var meteorBufs = meteorData.data.map(function (arr) {
+        var b = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, b);
+        gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW);
+        return b;
+      });
+
       function makeBuf(arr) {
         var b = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, b);
         gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW);
         return b;
       }
-      var burstBufs = [makeBuf(burstData.dir), makeBuf(burstData.end), makeBuf(burstData.len)];
-      var coreBufs = [makeBuf(burstData.cPos), makeBuf(burstData.cSize)];
+      var coreData = buildCore();
+      var coreBufs = [makeBuf(coreData.cPos), makeBuf(coreData.cSize)];
+      var tunnelData = buildTunnel(isCoarse ? 230 : 350);
+      var tunnelBufs = [makeBuf(tunnelData.data), makeBuf(tunnelData.rad), makeBuf(tunnelData.tint)];
 
-      var shellData = buildShell(isCoarse ? 620 : 950);
+      var tdData = buildTunnelDust(isCoarse ? 110 : 180);
+      var tdBufs = [makeBuf(tdData.data), makeBuf(tdData.rad), makeBuf(tdData.size)];
+
+      var shellData = buildShell(isCoarse ? 850 : 1250);
       var shellBufs = [makeBuf(shellData.dir), makeBuf(shellData.col), makeBuf(shellData.size)];
 
-      // 树顶星点火闪光：星心处的一簇大辉光点，形成末段短暂爆亮
-      var FLASH_N = 14;
-      var flashPos = new Float32Array(FLASH_N * 3), flashSize = new Float32Array(FLASH_N);
-      for (var fqi = 0; fqi < FLASH_N; fqi++) {
-        flashPos.set([rand(-0.03, 0.03), STAR_CY + rand(-0.03, 0.03), rand(-0.03, 0.03)], fqi * 3);
-        flashSize[fqi] = rand(1.8, 3.2);
-      }
-      var flashBufs = [makeBuf(flashPos), makeBuf(flashSize)];
+      var occGeo = buildOccluder();
+      var occPosBuf = makeBuf(occGeo.pos);
+      var occIdxBuf = gl.createBuffer();
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, occIdxBuf);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, occGeo.idx, gl.STATIC_DRAW);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+      var occIndexCount = occGeo.idx.length;
 
       var bgBuf = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, bgBuf);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+
+      /* ----- 背景代码纹理：真实代码文字（画布 2D 绘制 → WebGL 纹理） -----
+         左右两列真字、中央留空给树；等宽字体、真实缩进与空行，
+         在着色器里缓慢上滚，隧道 / 形成 / 待机全程都在。 */
+      var CODE_LINES = [
+        "// particle-christmas-tree.js",
+        "import * as THREE from 'three';",
+        "",
+        "const COUNT = 140000;",
+        "const TREE_H = 3.55;",
+        "const BASE_R = 1.08;",
+        "const GOLDEN = 2.39996;",
+        "",
+        "function radiusAt(h) {",
+        "  return BASE_R * Math.pow(1 - h, 0.8);",
+        "}",
+        "",
+        "const particles = [];",
+        "for (let i = 0; i < COUNT; i++) {",
+        "  const t = Math.random();",
+        "  const a = i * GOLDEN; // golden angle",
+        "  const r = radiusAt(t);",
+        "  const y = -0.34 + t * TREE_H;",
+        "  particles.push({",
+        "    x: Math.cos(a) * r,",
+        "    y: y,",
+        "    z: Math.sin(a) * r,",
+        "    hue: 0.92 + t * 0.05,",
+        "  });",
+        "}",
+        "",
+        "// one ribbon, four turns",
+        "ribbon.turns = 4;",
+        "ribbon.radius = r + 0.10;",
+        "ribbon.occludeBack = true;",
+        "",
+        "function spiral(t) {",
+        "  const ang = t * Math.PI * 8;",
+        "  return [cos(ang), t, sin(ang)];",
+        "}",
+        "",
+        "heart.topper = 'pink';",
+        "heart.beat(0.5 + 0.5 * sin(t));",
+        "",
+        "for (const bell of ornaments) {",
+        "  bell.color = 0xffd98a;",
+        "  bell.twinkle(time + bell.phase);",
+        "}",
+        "",
+        "if (mode === 'tree') assemble();",
+        "else if (mode === 'scatter') {",
+        "  explode(cloud, 3.85);",
+        "}",
+        "",
+        "meteors.rate = 8;",
+        "fireworks.every(3.8, 'sec');",
+        "",
+        "renderer.render(scene, camera);",
+        "// Merry Christmas"
+      ];
+      function createCodeTexture() {
+        // 画布必须用 2 的幂尺寸（2048×1024）：WebGL1 里非 2 的幂纹理配
+        // REPEAT 环绕会被判为不完整、采样全黑——旧版 1920×1080 正是因此
+        // 让代码层整层消失（只剩灰条假象）。行高 32 × 32 行正好铺满
+        // 1024 高，纵向 REPEAT 滚动无缝。
+        var W = 2048, H = 1024, LH = 32;
+        var cv = document.createElement("canvas");
+        cv.width = W; cv.height = H;
+        var ctx = cv.getContext("2d");
+        ctx.clearRect(0, 0, W, H);
+        ctx.font = "21px ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace";
+        ctx.textBaseline = "top";
+        var rows = H / LH; // 32 行，正好铺满一屏高、纵向无缝滚动
+        function drawColumn(x, offset) {
+          for (var row = 0; row < rows; row++) {
+            var line = CODE_LINES[(row + offset) % CODE_LINES.length];
+            if (!line) continue;
+            var trim = line.replace(/^\s+/, "");
+            if (trim.indexOf("//") === 0) ctx.fillStyle = "rgba(126, 178, 152, 1)";
+            else if (trim.indexOf("const ") === 0 || trim.indexOf("function") === 0 ||
+                     trim.indexOf("if ") === 0 || trim.indexOf("for ") === 0 ||
+                     trim.indexOf("return") === 0 || trim.indexOf("import") === 0)
+              ctx.fillStyle = "rgba(168, 216, 234, 1)";
+            else if (trim.indexOf("'") !== -1 || trim.indexOf('"') !== -1)
+              ctx.fillStyle = "rgba(240, 190, 220, 1)";
+            else ctx.fillStyle = "rgba(178, 240, 214, 1)";
+            ctx.fillText(line, x, row * LH + 6);
+          }
+        }
+        drawColumn(28, 0);          // 左列：uv x 约 0.01–0.27
+        drawColumn(1400, 23);       // 右列：uv x 约 0.68–0.94，与左列内容错开
+        var tex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, cv);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        return tex;
+      }
+      var codeTex = createCodeTexture();
 
       // 照片四边形几何（三角形带）
       var photoQuadPos = gl.createBuffer();
@@ -1862,7 +2138,8 @@
       var yaw = 0, pitchDrag = 0;
       var autoRotate = !REDUCED;
       var formStart = performance.now();
-      var FORM_MS = REDUCED ? 1 : 5000;
+      var INTRO_TUNNEL_MS = 3200; // 开场隧道段：树粒子还停在球壳起点，先只看光流
+      var INTRO_FORM_MS = 5900;   // 汇聚成形段（与隧道段合计约 9.1 秒）
 
       // 手势形态状态：0 = 树，1 = 散开
       var scatterCur = 0, scatterTarget = 0;
@@ -1968,7 +2245,6 @@
       });
       document.getElementById("btnReplay").addEventListener("click", function () {
         formStart = performance.now();
-        FORM_MS = 5000;
         doAssemble();
       });
 
@@ -2554,7 +2830,7 @@
         unbindSystem();
       }
 
-      // 辉光点（开场光核 / 树顶星闪光共用 coreProg）
+      // 辉光点（开场光核专用 coreProg，径向衰减在贴图内归零、无方框边）
       function drawGlowPoints(bufs, count, mv, alpha, r, g, b) {
         gl.useProgram(coreProg.pr);
         gl.uniformMatrix4fv(coreProg.U.uProj, false, view.proj);
@@ -2579,7 +2855,13 @@
         var dt = Math.min(0.05, (now - lastT) / 1000);
         lastT = now;
         var time = now / 1000;
-        var form = clamp((now - formStart) / FORM_MS, 0, 1);
+        var elapsedF = now - formStart;
+        // 形成进度：隧道段（前约 3.2 秒）保持 0，之后约 5.9 秒完成汇聚成形
+        var form = REDUCED ? 1 : clamp((elapsedF - INTRO_TUNNEL_MS) / INTRO_FORM_MS, 0, 1);
+        // 隧道段树体不可见，汇聚开始后随球壳一起淡入
+        var introA = REDUCED ? 1 : smoothstep(2600, 3900, elapsedF);
+        // 背景点缀（流星 / 烟花）的总闸门：只在形成动画完成后淡入，此后常驻循环
+        var lifeA = REDUCED ? 1 : smoothstep(INTRO_TUNNEL_MS + INTRO_FORM_MS, INTRO_TUNNEL_MS + INTRO_FORM_MS + 1600, elapsedF);
         // 形态插值（约 1.5–2 秒平滑过渡，聚合带螺旋汇聚）
         scatterCur += (scatterTarget - scatterCur) * (1 - Math.exp(-dt * 2.1));
         if (Math.abs(scatterTarget - scatterCur) < 0.001) scatterCur = scatterTarget;
@@ -2592,23 +2874,33 @@
         var yawEff = yaw + yawHand;
 
         var camDist = view.baseDist * zoomF;
+        if (!REDUCED) {
+          // 隧道段明显推镜：从 1.20 倍距离缓缓推近到正常，配合光流的穿越感
+          var pushT = clamp(elapsedF / 4200, 0, 1);
+          camDist *= 1.20 - 0.20 * (pushT * pushT * (3 - 2 * pushT));
+        }
         var el = elevation + pitchDrag + pitchHand;
         var eye = [0, view.targetY + camDist * Math.sin(el), camDist * Math.cos(el)];
         var viewM = mLookAt(eye, [0, view.targetY, 0], [0, 1, 0]);
         var modelM = mModel(view.offX, yawEff, 0);
         var mvTree = mMul(viewM, modelM);
         var mvTop = mMul(viewM, mModel(view.offX, 0, 0));
-        // 树顶星呼吸：整体亮度 + 尺寸随正弦脉动；散开后随粒子云飘散
+        // 树顶爱心呼吸：整体亮度 + 尺寸随正弦脉动；散开后随粒子云飘散
         var topPulse = 1 + 0.13 * (0.5 + 0.5 * Math.sin(time * 2.3)) - 0.065;
         var mvTopEff = scatterCur > 0.01 ? mvTree : mvTop;
 
         gl.disable(gl.DEPTH_TEST);
         gl.disable(gl.BLEND);
+        gl.clear(gl.DEPTH_BUFFER_BIT); // 遮挡体每帧重写深度，先清（须在 depthMask 关闭前）
+        gl.depthMask(false);
 
         /* 背景 */
         gl.useProgram(bgProg.pr);
         gl.uniform1f(bgProg.U.uTime, time);
         gl.uniform2f(bgProg.U.uHalo, view.halo[0], view.halo[1]);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, codeTex);
+        if (bgProg.U.uCodeTex) gl.uniform1i(bgProg.U.uCodeTex, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, bgBuf);
         gl.enableVertexAttribArray(0);
         gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
@@ -2621,31 +2913,46 @@
         /* 背景星 */
         drawPoints(stars, viewM, { time: time, form: 1, scatter: 0, twinkle: 0.45, bright: 0.9 });
 
-        /* 开场序列（约 2.3 秒）：品红光核脉动 → 放射线条外爆 → 粒子球壳扩散，
-           随后树粒子用约 5 秒形成动画从球壳螺旋汇聚成树 */
-        var elapsedF = now - formStart;
+        /* 开场序列（约 9.1 秒）：时空隧道光流 + 细尘（约 3.4 秒，中心光核小而暗）→
+           球壳扩散（与隧道尾段重叠交融）→ 树粒子螺旋汇聚、自下而上成形、爱心最后淡入 */
         if (!REDUCED) {
-          var coreT = elapsedF / 1150;
-          if (coreT < 1) {
-            var coreA = 0.85 * Math.pow(Math.sin(Math.PI * coreT), 1.4) * (0.92 + 0.08 * Math.sin(time * 26));
-            drawGlowPoints(coreBufs, CORE_N, mvTop, coreA, 1.05, 0.30, 0.72);
-          }
-          var burstT = clamp((elapsedF - 250) / 1750, 0, 1);
-          if (burstT > 0 && burstT < 1) {
-            gl.useProgram(burstProg.pr);
-            gl.uniformMatrix4fv(burstProg.U.uProj, false, view.proj);
-            gl.uniformMatrix4fv(burstProg.U.uMV, false, mvTop);
-            gl.uniform1f(burstProg.U.uT, burstT);
-            var bSizes = [3, 1, 1];
-            for (var bi = 0; bi < 3; bi++) {
-              gl.bindBuffer(gl.ARRAY_BUFFER, burstBufs[bi]);
-              gl.enableVertexAttribArray(bi);
-              gl.vertexAttribPointer(bi, bSizes[bi], gl.FLOAT, false, 0, 0);
+          var tunnelT = clamp(elapsedF / 3400, 0, 1);
+          if (tunnelT < 1) {
+            gl.useProgram(tunnelProg.pr);
+            gl.uniformMatrix4fv(tunnelProg.U.uProj, false, view.proj);
+            gl.uniformMatrix4fv(tunnelProg.U.uMV, false, mvTop);
+            gl.uniform1f(tunnelProg.U.uT, tunnelT);
+            var tSizes = [4, 1, 1];
+            for (var ti = 0; ti < 3; ti++) {
+              gl.bindBuffer(gl.ARRAY_BUFFER, tunnelBufs[ti]);
+              gl.enableVertexAttribArray(ti);
+              gl.vertexAttribPointer(ti, tSizes[ti], gl.FLOAT, false, 0, 0);
             }
-            gl.drawArrays(gl.LINES, 0, BURST_N * 2);
-            for (var bj = 0; bj < 3; bj++) gl.disableVertexAttribArray(bj);
+            gl.drawArrays(gl.LINES, 0, tunnelData.n * 2);
+            for (var tj = 0; tj < 3; tj++) gl.disableVertexAttribArray(tj);
+            // 细尘点流：与光线同场冲过镜头
+            gl.useProgram(tptProg.pr);
+            gl.uniformMatrix4fv(tptProg.U.uProj, false, view.proj);
+            gl.uniformMatrix4fv(tptProg.U.uMV, false, mvTop);
+            gl.uniform1f(tptProg.U.uT, tunnelT);
+            gl.uniform1f(tptProg.U.uScale, view.scaleF);
+            var dSizes = [4, 1, 1];
+            for (var di = 0; di < 3; di++) {
+              gl.bindBuffer(gl.ARRAY_BUFFER, tdBufs[di]);
+              gl.enableVertexAttribArray(di);
+              gl.vertexAttribPointer(di, dSizes[di], gl.FLOAT, false, 0, 0);
+            }
+            gl.drawArrays(gl.POINTS, 0, tdData.n);
+            for (var dj = 0; dj < 3; dj++) gl.disableVertexAttribArray(dj);
           }
-          var shellT = clamp((elapsedF - 700) / 1550, 0, 1);
+          // 光核：小而暗，只轻轻呼吸，隧道后段到球壳初段之间淡出
+          var coreT = elapsedF / 4000;
+          if (coreT > 0 && coreT < 1) {
+            var coreA = 0.20 * clamp(coreT / 0.10, 0, 1) * (1 - smoothstep(0.70, 1.0, coreT)) *
+              (0.85 + 0.15 * Math.sin(time * 7.0));
+            if (coreA > 0.004) drawGlowPoints(coreBufs, CORE_N, mvTop, coreA, 1.05, 0.36, 0.74);
+          }
+          var shellT = clamp((elapsedF - 2900) / 2700, 0, 1);
           if (shellT > 0 && shellT < 1) {
             gl.useProgram(shellProg.pr);
             gl.uniformMatrix4fv(shellProg.U.uProj, false, view.proj);
@@ -2663,39 +2970,103 @@
           }
         }
 
-        /* 地面微光点 + 轨道环（散开时变淡） */
-        drawPoints(ground, mvTree, { time: time, form: form, sizeMul: 1.0, twinkle: 0.5, bright: 0.5, alpha: (1 - 0.7 * scatterCur) * 0.85 });
-        drawPoints(rings, mvTree, { time: time, form: form, sizeMul: 1.1, bright: 0.8, twinkle: 0.35, alpha: 1 - 0.85 * scatterCur });
+        /* 背景点缀：烟花 + 流星（只在形成动画完成后淡入，此后循环；
+           绘于树身之前、衬在背景层，不随树旋转） */
+        if (lifeA > 0.01) {
+          gl.useProgram(fwProg.pr);
+          var FU = fwProg.U;
+          gl.uniformMatrix4fv(FU.uProj, false, view.proj);
+          gl.uniformMatrix4fv(FU.uMV, false, mvTop);
+          gl.uniform1f(FU.uTime, time);
+          gl.uniform1f(FU.uScale, view.scaleF);
+          gl.uniform1f(FU.uGate, lifeA);
+          var fwSizes = [3, 3, 3, 1, 1, 1];
+          for (var fi = 0; fi < 6; fi++) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, fwBufs[fi]);
+            gl.enableVertexAttribArray(fi);
+            gl.vertexAttribPointer(fi, fwSizes[fi], gl.FLOAT, false, 0, 0);
+          }
+          gl.drawArrays(gl.POINTS, 0, fwData.n);
+          for (var fj = 0; fj < 6; fj++) gl.disableVertexAttribArray(fj);
 
-        /* 树干 */
-        drawPoints(trunk, mvTree, { time: time, form: form, twinkle: 0.1, bright: 0.9, travel: 0.42 });
-
-        /* 树叶：大光晕 + 亮芯两遍（强闪烁出闪粉感，亮度压低避免过曝发白） */
-        drawPoints(leaves, mvTree, { time: time, form: form, sizeMul: 2.2, bright: 0.05, sway: 0.008, twinkle: 0.4, arc: 0.55 });
-        drawPoints(leaves, mvTree, { time: time, form: form, sizeMul: 1.0, bright: 0.44, sway: 0.008, twinkle: 0.75, arc: 0.55 });
-        /* 形成中的拖尾残影：同一批粒子以稍早的进度再画两遍淡影，读作流光拖尾 */
-        if (form < 1 && !REDUCED) {
-          drawPoints(leaves, mvTree, { time: time, form: Math.max(0, form - 0.045), sizeMul: 1.5, bright: 0.10, sway: 0.008, twinkle: 0.5, arc: 0.55 });
-          drawPoints(leaves, mvTree, { time: time, form: Math.max(0, form - 0.09), sizeMul: 1.9, bright: 0.05, sway: 0.008, twinkle: 0.5, arc: 0.55 });
+          gl.useProgram(meteorProg.pr);
+          var MU = meteorProg.U;
+          gl.uniformMatrix4fv(MU.uProj, false, view.proj);
+          gl.uniformMatrix4fv(MU.uMV, false, mvTop);
+          gl.uniform1f(MU.uTime, time);
+          gl.uniform1f(MU.uScale, view.scaleF);
+          gl.uniform1f(MU.uGate, lifeA);
+          var mtSizes = [3, 3, 4];
+          for (var mi = 0; mi < 3; mi++) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, meteorBufs[mi]);
+            gl.enableVertexAttribArray(mi);
+            gl.vertexAttribPointer(mi, mtSizes[mi], gl.FLOAT, false, 0, 0);
+          }
+          gl.drawArrays(gl.POINTS, 0, meteorData.n);
+          for (var mj = 0; mj < 3; mj++) gl.disableVertexAttribArray(mj);
         }
 
-        /* 螺旋光带：柔光晕 + 亮芯两遍 */
-        drawPoints(ribbon, mvTree, { time: time, form: form, sizeMul: 2.6, bright: 0.16, twinkle: 0.3, travel: 0.34, arc: 0.35 });
-        drawPoints(ribbon, mvTree, { time: time, form: form, sizeMul: 1.0, bright: 0.95, twinkle: 0.35, travel: 0.34, arc: 0.35 });
+        /* 地面微光点 + 轨道环（散开时变淡） */
+        drawPoints(ground, mvTree, { time: time, form: form, sizeMul: 1.0, twinkle: 0.5, bright: 0.5, alpha: (1 - 0.7 * scatterCur) * 0.85 * introA });
+        drawPoints(rings, mvTree, { time: time, form: form, sizeMul: 1.1, bright: 0.8, twinkle: 0.35, alpha: (1 - 0.85 * scatterCur) * introA });
+
+        /* 树干 */
+        drawPoints(trunk, mvTree, { time: time, form: form, twinkle: 0.1, bright: 0.9, travel: 0.42, alpha: introA });
+
+        /* 树叶：大光晕 + 亮芯两遍（强闪烁出闪粉感；本轮整体提亮——芯光与
+           光晕都上调，树身明显更亮更通透，仍保持粉色梯度与层间层次） */
+        drawPoints(leaves, mvTree, { time: time, form: form, sizeMul: 2.2, bright: 0.09, sway: 0.008, twinkle: 0.4, arc: 0.55, alpha: introA });
+        drawPoints(leaves, mvTree, { time: time, form: form, sizeMul: 1.0, bright: 0.80, sway: 0.008, twinkle: 0.75, arc: 0.55, alpha: introA });
+        /* 形成中的拖尾残影：同一批粒子以稍早的进度再画两遍淡影，读作流光拖尾 */
+        if (form < 1 && !REDUCED) {
+          drawPoints(leaves, mvTree, { time: time, form: Math.max(0, form - 0.045), sizeMul: 1.5, bright: 0.16, sway: 0.008, twinkle: 0.5, arc: 0.55, alpha: introA });
+          drawPoints(leaves, mvTree, { time: time, form: Math.max(0, form - 0.09), sizeMul: 1.9, bright: 0.08, sway: 0.008, twinkle: 0.5, arc: 0.55, alpha: introA });
+        }
+
+        /* 遮挡体：与树身同轴的隐形圆锥（半径为树表的 93%）先行写深度、不写颜色；
+           随后光带在深度测试开启下绘制——背面的带段被深度挡掉，任意角度只见近侧。
+           遮挡半径随形成进度长入、随散开收回，过渡不跳变；树身粒子本身不测深度、
+           不受影响，遮挡体也永不着色。 */
+        var occF = clamp((form - 0.55) / 0.45, 0, 1) * (1 - smoothstep(0.0, 0.35, scatterCur));
+        var useOcc = occF > 0.01;
+        if (useOcc) {
+          gl.enable(gl.DEPTH_TEST);
+          gl.depthFunc(gl.LEQUAL);
+          gl.depthMask(true);
+          gl.colorMask(false, false, false, false);
+          gl.disable(gl.BLEND);
+          gl.useProgram(occProg.pr);
+          gl.uniformMatrix4fv(occProg.U.uProj, false, view.proj);
+          gl.uniformMatrix4fv(occProg.U.uMV, false, mvTree);
+          gl.uniform1f(occProg.U.uRad, occF);
+          gl.bindBuffer(gl.ARRAY_BUFFER, occPosBuf);
+          gl.enableVertexAttribArray(0);
+          gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, occIdxBuf);
+          gl.drawElements(gl.TRIANGLES, occIndexCount, gl.UNSIGNED_SHORT, 0);
+          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+          gl.disableVertexAttribArray(0);
+          gl.colorMask(true, true, true, true);
+          gl.depthMask(false);
+          gl.enable(gl.BLEND);
+          gl.blendFunc(gl.ONE, gl.ONE);
+          // DEPTH_TEST 保持开启，供紧接着的光带绘制做遮挡测试
+        }
+        /* 单条螺旋光带（绕树四圈，点缀）：柔光晕 + 芯光两遍，尺寸/亮度都低于树身 */
+        drawPoints(ribbon, mvTree, { time: time, form: form, sizeMul: 1.9, bright: 0.09, twinkle: 0.3, travel: 0.34, arc: 0.35, alpha: introA });
+        drawPoints(ribbon, mvTree, { time: time, form: form, sizeMul: 1.0, bright: 0.60, twinkle: 0.35, travel: 0.34, arc: 0.35, alpha: introA });
+        /* 金色铃铛挂饰：与光带同在遮挡体深度测试下绘制——正面的金点
+           在树表之外、通过测试清晰闪烁；背面的被树身深度挡掉 */
+        drawPoints(ornaments, mvTree, { time: time, form: form, sizeMul: 2.3, bright: 0.16, twinkle: 0.55, arc: 0.55, alpha: introA });
+        drawPoints(ornaments, mvTree, { time: time, form: form, sizeMul: 1.0, bright: 1.15, twinkle: 0.85, arc: 0.55, alpha: introA });
+        if (useOcc) gl.disable(gl.DEPTH_TEST);
 
         /* 浮尘 */
         drawPoints(dust, mvTree, { time: time, form: 1, scatter: 0, sway: 0.05, twinkle: 0.4, bright: 0.55, alpha: 0.8 });
 
-        /* 树顶四角星：大光晕 + 本体 */
-        drawPoints(topper, mvTopEff, { time: time, form: form, sizeMul: 4.5, bright: 0.10, pulse: topPulse, twinkle: 0.12, travel: 0.18, arc: 0.15 });
-        drawPoints(topper, mvTopEff, { time: time, form: form, sizeMul: 1.1, bright: 1.15, pulse: topPulse, twinkle: 0.12, travel: 0.18, arc: 0.15 });
-
-        /* 树顶星点火闪光：形成末段（约 4.8 秒）星心短暂爆亮一次 */
-        if (!REDUCED) {
-          var fx = (now - formStart - 4800) / 420;
-          var flashA = Math.exp(-fx * fx) * 0.85;
-          if (flashA > 0.01) drawGlowPoints(flashBufs, FLASH_N, mvTop, flashA, 1.25, 1.12, 1.18);
-        }
+        /* 树顶爱心：柔光晕 + 本体（小角度螺旋轻轻落位、呼吸脉动，无点火闪光） */
+        drawPoints(topper, mvTopEff, { time: time, form: form, sizeMul: 4.2, bright: 0.12, pulse: topPulse, twinkle: 0.12, travel: 0.18, swirl: 1.3, arc: 0.05, alpha: introA });
+        drawPoints(topper, mvTopEff, { time: time, form: form, sizeMul: 1.15, bright: 1.05, pulse: topPulse, twinkle: 0.12, travel: 0.18, swirl: 1.3, arc: 0.05, alpha: introA });
 
         /* 星芒 */
         gl.useProgram(spProg.pr);
@@ -2712,22 +3083,6 @@
         bindSystem(spProg, sparkles);
         gl.drawArrays(gl.POINTS, 0, sparkles.n);
         unbindSystem();
-
-        /* 两侧烟花（定时绽放，着色器内按起始时刻自动显隐） */
-        gl.useProgram(fwProg.pr);
-        var FU = fwProg.U;
-        gl.uniformMatrix4fv(FU.uProj, false, view.proj);
-        gl.uniformMatrix4fv(FU.uMV, false, mvTree);
-        gl.uniform1f(FU.uTime, time);
-        gl.uniform1f(FU.uScale, view.scaleF);
-        var fwSizes = [3, 3, 3, 1, 1, 1];
-        for (var fi = 0; fi < 6; fi++) {
-          gl.bindBuffer(gl.ARRAY_BUFFER, fwBufs[fi]);
-          gl.enableVertexAttribArray(fi);
-          gl.vertexAttribPointer(fi, fwSizes[fi], gl.FLOAT, false, 0, 0);
-        }
-        gl.drawArrays(gl.POINTS, 0, fwData.n);
-        for (var fj = 0; fj < 6; fj++) gl.disableVertexAttribArray(fj);
 
         /* 照片贴片（普通混合，内部切回加色混合） */
         drawPhotos(viewM, eye, yawEff, time);
