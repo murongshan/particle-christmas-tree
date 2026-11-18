@@ -1,0 +1,2261 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="data:," />
+    <title>粒子圣诞树</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: #04061a;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      #scene {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+        touch-action: none;
+        cursor: grab;
+      }
+      #scene:active { cursor: grabbing; }
+
+      .greeting {
+        position: fixed;
+        left: 6vw;
+        top: 27%;
+        z-index: 5;
+        pointer-events: none;
+        color: #fff;
+      }
+      .greeting h1 {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", "Songti SC", serif;
+        font-style: italic;
+        font-weight: 500;
+        font-size: clamp(34px, 4.6vw, 66px);
+        letter-spacing: 0.015em;
+        line-height: 1.12;
+        text-shadow:
+          0 0 14px rgba(190, 200, 255, 0.85),
+          0 0 42px rgba(150, 130, 255, 0.55),
+          0 0 90px rgba(255, 150, 220, 0.35);
+      }
+      .greeting p {
+        margin: 16px 0 0 4px;
+        font-size: clamp(14px, 1.5vw, 19px);
+        letter-spacing: 0.06em;
+        color: rgba(238, 240, 255, 0.95);
+        text-shadow:
+          0 0 10px rgba(180, 195, 255, 0.8),
+          0 0 30px rgba(150, 130, 255, 0.5);
+      }
+
+      .bar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 6;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
+        pointer-events: none;
+      }
+      .gesturerow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .gpill {
+        padding: 6px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(190, 200, 255, 0.25);
+        background: rgba(13, 17, 46, 0.5);
+        color: rgba(232, 235, 255, 0.92);
+        font-size: 12.5px;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+      .privacy {
+        font-size: 11.5px;
+        letter-spacing: 0.04em;
+        color: rgba(205, 212, 255, 0.55);
+        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+        white-space: nowrap;
+      }
+      .brow {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .hint {
+        font-size: 12.5px;
+        letter-spacing: 0.08em;
+        color: rgba(205, 212, 255, 0.62);
+        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+        padding-bottom: 10px;
+        white-space: nowrap;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+        pointer-events: auto;
+      }
+      .controls button {
+        min-height: 44px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(190, 200, 255, 0.32);
+        background: rgba(13, 17, 46, 0.55);
+        color: #e8ebff;
+        font-size: 13.5px;
+        letter-spacing: 0.06em;
+        cursor: pointer;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        transition: background 0.2s ease, border-color 0.2s ease;
+      }
+      .controls button:hover { background: rgba(35, 42, 92, 0.65); border-color: rgba(210, 218, 255, 0.55); }
+      .controls button:active { transform: scale(0.97); }
+      .controls button.active {
+        background: rgba(64, 54, 120, 0.72);
+        border-color: rgba(232, 200, 119, 0.75);
+        color: #ffeec2;
+      }
+      .controls button:disabled { opacity: 0.55; cursor: wait; }
+
+      /* 摄像头预览小窗 */
+      #camWrap {
+        position: fixed;
+        right: 16px;
+        bottom: 138px;
+        width: 178px;
+        z-index: 8;
+        display: none;
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid rgba(190, 200, 255, 0.42);
+        box-shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
+        background: #000;
+      }
+      #camWrap.on { display: block; }
+      .mirror {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        transform: scaleX(-1);
+      }
+      #camVideo {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      #camCanvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      #camStatus {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 14px 9px 6px;
+        font-size: 12px;
+        letter-spacing: 0.05em;
+        color: #fff;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.68));
+        pointer-events: none;
+      }
+
+      /* 照片放大层 */
+      #focusOverlay {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(3, 4, 16, 0.74);
+        padding: 20px;
+      }
+      #focusOverlay.on { display: flex; }
+      .focusCard {
+        position: relative;
+        background: #fdfdf8;
+        padding: 12px 12px 42px;
+        border: 3px solid #e6c877;
+        border-radius: 6px;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4),
+          0 0 46px rgba(232, 200, 119, 0.45),
+          0 24px 60px rgba(0, 0, 0, 0.6);
+        animation: focusIn 0.38s cubic-bezier(0.2, 0.9, 0.3, 1.18);
+      }
+      .focusCard img {
+        display: block;
+        max-width: min(76vw, 480px);
+        max-height: 58vh;
+        object-fit: contain;
+        background: #10101c;
+      }
+      .focusCap {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 12px;
+        text-align: center;
+        color: #5a5a52;
+        font-size: 13px;
+        letter-spacing: 0.14em;
+      }
+      #btnFocusClose {
+        position: absolute;
+        top: -17px;
+        right: -17px;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 2px solid #e6c877;
+        background: #141a3d;
+        color: #ffe9a8;
+        font-size: 17px;
+        line-height: 1;
+        cursor: pointer;
+        z-index: 2;
+      }
+      @keyframes focusIn {
+        from { transform: scale(0.5); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+      }
+
+      #toast {
+        position: fixed;
+        top: calc(14px + env(safe-area-inset-top));
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 30;
+        display: none;
+        max-width: 88vw;
+        padding: 9px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(190, 200, 255, 0.35);
+        background: rgba(10, 13, 34, 0.88);
+        color: #e8ebff;
+        font-size: 13px;
+        letter-spacing: 0.04em;
+        text-align: center;
+      }
+      #toast.on { display: block; }
+
+      /* 手势启动分步诊断行 */
+      #camSteps {
+        display: none;
+        text-align: center;
+        font-size: 12px;
+        letter-spacing: 0.03em;
+        color: rgba(205, 212, 255, 0.75);
+        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+        pointer-events: auto;
+        word-break: break-word;
+      }
+      #camSteps.on { display: block; }
+      #camSteps .st-ok { color: #8fe6a8; }
+      #camSteps .st-run { color: #ffd76a; }
+      #camSteps .st-fail { color: #ff9d9d; }
+      #camSteps .st-detail { display: block; margin-top: 2px; color: rgba(255, 157, 157, 0.9); font-size: 11.5px; }
+
+      /* 摄像头受限 / 失败说明面板 */
+      #camHelp {
+        position: fixed;
+        left: 50%;
+        bottom: 118px;
+        transform: translateX(-50%);
+        z-index: 26;
+        display: none;
+        width: min(92vw, 520px);
+        padding: 16px 18px 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(232, 200, 119, 0.55);
+        background: rgba(10, 13, 34, 0.96);
+        color: #eef0ff;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+        font-size: 13.5px;
+        line-height: 1.65;
+        letter-spacing: 0.02em;
+      }
+      #camHelp.on { display: block; }
+      #camHelp .chTitle { font-size: 15px; font-weight: 700; color: #ffeec2; margin-bottom: 4px; }
+      #camHelp .chReason { color: rgba(232, 235, 255, 0.88); word-break: break-word; white-space: pre-wrap; }
+      #camHelp .chUrl {
+        display: block;
+        margin: 10px 0 8px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(190, 200, 255, 0.22);
+        color: #bcd2ff;
+        font-size: 12px;
+        word-break: break-all;
+        text-decoration: none;
+      }
+      #camHelp .chRow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+      #camHelp .chRow button, #camHelp .chRow a.chOpen {
+        min-height: 38px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(190, 200, 255, 0.35);
+        background: rgba(35, 42, 92, 0.7);
+        color: #e8ebff;
+        font-size: 13px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+      }
+      #camHelp .chRow button.primary {
+        background: rgba(64, 54, 120, 0.85);
+        border-color: rgba(232, 200, 119, 0.75);
+        color: #ffeec2;
+      }
+
+      #dropHint {
+        position: fixed;
+        inset: 14px;
+        z-index: 15;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        border: 2px dashed rgba(232, 200, 119, 0.8);
+        border-radius: 18px;
+        background: rgba(6, 8, 26, 0.55);
+        color: #ffeec2;
+        font-size: 17px;
+        letter-spacing: 0.1em;
+        pointer-events: none;
+      }
+      #dropHint.on { display: flex; }
+
+      .fallback {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 24px;
+        color: #dfe4ff;
+        background: radial-gradient(120% 100% at 50% 20%, #141b45 0%, #04061a 70%);
+        font-size: 15px;
+        line-height: 1.8;
+      }
+
+      @media (max-width: 680px) {
+        .greeting {
+          left: 20px;
+          top: calc(20px + env(safe-area-inset-top));
+        }
+        .greeting h1 { font-size: clamp(30px, 9vw, 42px); }
+        .greeting p { margin-top: 10px; font-size: 14px; }
+        .brow { flex-direction: column; align-items: center; gap: 2px; }
+        .hint { padding-bottom: 4px; order: 2; }
+        .controls { order: 1; justify-content: center; }
+        .controls button { padding: 9px 13px; font-size: 13px; }
+        #camWrap { width: 128px; bottom: 218px; right: 12px; }
+        #camHelp { bottom: 190px; }
+        .gpill { font-size: 11.5px; padding: 5px 11px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .focusCard { animation: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="scene" aria-label="粒子圣诞树动画"></canvas>
+
+    <div class="greeting">
+      <h1>Merry Christmas</h1>
+      <p>To：所有看到的人天天开心</p>
+    </div>
+
+    <div id="camWrap" aria-hidden="true">
+      <div class="mirror">
+        <video id="camVideo" playsinline muted></video>
+        <canvas id="camCanvas" width="320" height="240"></canvas>
+      </div>
+      <div id="camStatus">当前手势：无</div>
+    </div>
+
+    <div class="bar">
+      <div class="gesturerow">
+        <span class="gpill">🖐 张手散开 · ✊ 握拳成树 · 🤏 捏合看照片 · 👋 移动手旋转</span>
+        <span class="privacy">摄像头画面只在本机识别，不会上传</span>
+      </div>
+      <div id="camSteps" aria-live="polite"></div>
+      <div class="brow">
+        <div class="hint">拖动旋转 · 滚动 / 双指缩放 · 点照片放大</div>
+        <div class="controls">
+          <button id="btnCam" type="button">开启摄像头手势</button>
+          <button id="btnUpload" type="button">上传照片</button>
+          <button id="btnScatter" type="button">散开</button>
+          <button id="btnAssemble" type="button" class="active">聚成树</button>
+          <button id="btnFocus" type="button">放大照片</button>
+          <button id="btnReplay" type="button">↻ 重播形成动画</button>
+          <button id="btnRotate" type="button">暂停旋转</button>
+        </div>
+      </div>
+    </div>
+
+    <input type="file" id="fileInput" accept="image/*" multiple hidden />
+
+    <div id="focusOverlay">
+      <div class="focusCard">
+        <button id="btnFocusClose" type="button" aria-label="关闭">✕</button>
+        <img id="focusImg" alt="放大的照片" />
+        <div class="focusCap" id="focusCap">Merry Christmas</div>
+      </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <div id="camHelp" role="alert">
+      <div class="chTitle" id="camHelpTitle">摄像头没能启动</div>
+      <div class="chReason" id="camHelpReason">摄像头启动失败，具体原因和原始错误会显示在这里。</div>
+      <a class="chUrl" id="camHelpUrl" href="https://muse.ai/s/li-zi-sheng-dan-shu-fxn6xji4tkhxlf/oH1de6Pv9azB3-YSzBJzGqs3Dv8l1WUaS1VXifmGt6M" target="_blank" rel="noopener">https://muse.ai/s/li-zi-sheng-dan-shu-fxn6xji4tkhxlf/oH1de6Pv9azB3-YSzBJzGqs3Dv8l1WUaS1VXifmGt6M</a>
+      <a class="chUrl" id="camHelpPagesUrl" href="https://murongshan.github.io/particle-christmas-tree/" target="_blank" rel="noopener" style="display:none">GitHub Pages 副本（发布后可用，顶层直开、无框架拦截）：https://murongshan.github.io/particle-christmas-tree/</a>
+      <div class="chRow">
+        <button type="button" class="primary" id="btnTopOpen" style="display:none">在浏览器顶层打开</button>
+        <button type="button" class="primary" id="btnRetryRecog" style="display:none">重试手势识别</button>
+        <a class="chOpen" href="https://muse.ai/s/li-zi-sheng-dan-shu-fxn6xji4tkhxlf/oH1de6Pv9azB3-YSzBJzGqs3Dv8l1WUaS1VXifmGt6M" target="_blank" rel="noopener">在浏览器打开</a>
+        <button type="button" id="btnCamHelpClose">知道了，用按钮玩</button>
+      </div>
+    </div>
+
+    <div id="dropHint">松开鼠标，把照片挂到树上 🎄</div>
+
+    <div class="fallback" id="fallback">
+      <div>这台设备的浏览器没有开启 WebGL，<br />粒子圣诞树暂时没法发光 ✨<br />换个较新的浏览器打开试试。</div>
+    </div>
+
+    <script>
+      "use strict";
+      /* ============================================================
+         粒子圣诞树 — WebGL 复刻抖音 @水炒冰 的 moderngl 粒子效果
+         树身 / 树干 / 地面光环 / 爱心树顶 / 星芒 / 飘雪 / 浮尘
+         + 手势识别（MediaPipe Hands，本地运行）+ 照片贴片
+         ============================================================ */
+
+      var REDUCED = window.matchMedia &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      /* ---------- 小型矩阵 / 向量工具 ---------- */
+      function mPerspective(fovRad, aspect, near, far) {
+        var f = 1 / Math.tan(fovRad / 2), nf = 1 / (near - far);
+        return new Float32Array([
+          f / aspect, 0, 0, 0,
+          0, f, 0, 0,
+          0, 0, (far + near) * nf, -1,
+          0, 0, 2 * far * near * nf, 0
+        ]);
+      }
+      function mLookAt(eye, center, up) {
+        var zx = eye[0] - center[0], zy = eye[1] - center[1], zz = eye[2] - center[2];
+        var zl = Math.hypot(zx, zy, zz); zx /= zl; zy /= zl; zz /= zl;
+        var xx = up[1] * zz - up[2] * zy, xy = up[2] * zx - up[0] * zz, xz = up[0] * zy - up[1] * zx;
+        var xl = Math.hypot(xx, xy, xz) || 1; xx /= xl; xy /= xl; xz /= xl;
+        var yx = zy * xz - zz * xy, yy = zz * xx - zx * xz, yz = zx * xy - zy * xx;
+        return new Float32Array([
+          xx, yx, zx, 0,
+          xy, yy, zy, 0,
+          xz, yz, zz, 0,
+          -(xx * eye[0] + xy * eye[1] + xz * eye[2]),
+          -(yx * eye[0] + yy * eye[1] + yz * eye[2]),
+          -(zx * eye[0] + zy * eye[1] + zz * eye[2]), 1
+        ]);
+      }
+      function mMul(a, b) {
+        var o = new Float32Array(16);
+        for (var c = 0; c < 4; c++) for (var r = 0; r < 4; r++) {
+          var s = 0;
+          for (var k = 0; k < 4; k++) s += a[k * 4 + r] * b[c * 4 + k];
+          o[c * 4 + r] = s;
+        }
+        return o;
+      }
+      function mModel(tx, yaw, pitch) {
+        var cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+        // T * Rx(pitch) * Ry(yaw)
+        return new Float32Array([
+          cy, sp * sy, -cp * sy, 0,
+          0, cp, sp, 0,
+          sy, -sp * cy, cp * cy, 0,
+          tx, 0, 0, 1
+        ]);
+      }
+      // 与 mModel(0 俯仰) 一致的绕 Y 旋转
+      function rotY(v, yaw, out) {
+        var cy = Math.cos(yaw), sy = Math.sin(yaw);
+        out[0] = cy * v[0] - sy * v[2];
+        out[1] = v[1];
+        out[2] = sy * v[0] + cy * v[2];
+        return out;
+      }
+      function vNorm(v) {
+        var l = Math.hypot(v[0], v[1], v[2]) || 1;
+        return [v[0] / l, v[1] / l, v[2] / l];
+      }
+      function vCross(a, b) {
+        return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+      }
+      function vLerp(a, b, t) {
+        return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+      }
+
+      function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+      function lerp(a, b, t) { return a + (b - a) * t; }
+      function smoothstep(a, b, x) {
+        var t = clamp((x - a) / (b - a), 0, 1);
+        return t * t * (3 - 2 * t);
+      }
+      function rand(a, b) { return a + Math.random() * (b - a); }
+
+      /* ---------- 轻提示 ---------- */
+      var toastEl = document.getElementById("toast");
+      var toastTimer = 0;
+      function toast(msg, ms) {
+        toastEl.textContent = msg;
+        toastEl.classList.add("on");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toastEl.classList.remove("on"); }, ms || 3400);
+      }
+
+      /* ---------- 树叶颜色梯度（原版色标） ---------- */
+      var STOPS = [
+        [0.00, 0.14, 0.92, 0.22],
+        [0.26, 0.05, 0.92, 0.40],
+        [0.46, 0.10, 0.86, 0.74],
+        [0.66, 0.30, 0.62, 1.00],
+        [0.84, 0.74, 0.36, 1.00],
+        [1.00, 1.00, 0.42, 0.78]
+      ];
+      function gradColor(h, out) {
+        h = clamp(h, 0, 1);
+        for (var i = 0; i < STOPS.length - 1; i++) {
+          var a = STOPS[i], b = STOPS[i + 1];
+          if (h <= b[0]) {
+            var t = (h - a[0]) / (b[0] - a[0]);
+            out[0] = lerp(a[1], b[1], t);
+            out[1] = lerp(a[2], b[2], t);
+            out[2] = lerp(a[3], b[3], t);
+            return out;
+          }
+        }
+        out[0] = 1; out[1] = 0.42; out[2] = 0.78;
+        return out;
+      }
+
+      /* ============================================================
+         几何生成：每个粒子输出
+         pos0（形成前散开）/ pos1（树形态）/ pos2（手势散开云团）
+         color / size / phase / delay
+         ============================================================ */
+      var TREE_H = 2.92, BASE_Y = -0.34, BASE_R = 1.52, TIP_Y = BASE_Y + TREE_H;
+      function radiusAt(h) {
+        var r = BASE_R * Math.pow(Math.max(0, 1 - h), 0.74);
+        if (h > 0.90) r *= 1 - (h - 0.90) / 0.10 * 0.55; // 树尖收锐
+        return r;
+      }
+      function scattered(p, kMin, kMax, noise) {
+        var k = rand(kMin, kMax);
+        return [
+          p[0] * k + rand(-noise, noise),
+          p[1] * k + rand(-noise, noise) + rand(0, 0.35),
+          p[2] * k + rand(-noise, noise)
+        ];
+      }
+      // 手势「散开」目标：以树心为中心的球状云团
+      function cloudTarget() {
+        var th = Math.random() * Math.PI * 2;
+        var ph = Math.acos(rand(-1, 1));
+        var r = rand(2.25, 3.65);
+        var sp = Math.sin(ph);
+        return [
+          Math.cos(th) * sp * r,
+          1.45 + Math.cos(ph) * r * 0.82,
+          Math.sin(th) * sp * r
+        ];
+      }
+      function makeSystem(n) {
+        return {
+          n: n,
+          pos0: new Float32Array(n * 3),
+          pos1: new Float32Array(n * 3),
+          pos2: new Float32Array(n * 3),
+          col: new Float32Array(n * 3),
+          size: new Float32Array(n),
+          phase: new Float32Array(n),
+          delay: new Float32Array(n)
+        };
+      }
+      function setP(sys, i, p0, p1, p2, c, size) {
+        sys.pos0.set(p0, i * 3);
+        sys.pos1.set(p1, i * 3);
+        sys.pos2.set(p2, i * 3);
+        sys.col.set(c, i * 3);
+        sys.size[i] = size;
+        sys.phase[i] = rand(0, Math.PI * 2);
+        sys.delay[i] = Math.random() * 0.45;
+      }
+
+      /* ----- 树叶：8 层垂坠裙边圆锥 ----- */
+      function buildLeaves(count) {
+        var sys = makeSystem(count), c = [0, 0, 0];
+        var TIERS = 8, tierSpan = TREE_H / TIERS;
+        // 按层表面积加权选层（下层更大）
+        var weights = [], wSum = 0, i, t;
+        for (i = 0; i < TIERS; i++) {
+          var w = radiusAt((i + 0.5) / TIERS) + 0.25;
+          weights.push(w); wSum += w;
+        }
+        for (i = 0; i < count; i++) {
+          var pick = Math.random() * wSum, tier = 0;
+          while (pick > weights[tier]) { pick -= weights[tier]; tier++; }
+          var tierTopY = BASE_Y + (tier + 1) * tierSpan * 0.94;
+          var tierH = tierSpan * 1.16; // 层间重叠减小，台阶才不被抹平
+          var s = Math.pow(Math.random(), 0.62); // 偏向裙边
+          var rim = Math.random() < 0.20; // 裙边亮 rim 粒子
+          if (rim) s = rand(0.93, 1.0);
+          var yTopH = (tierTopY - BASE_Y) / TREE_H;
+          var yBotH = (tierTopY - tierH - BASE_Y) / TREE_H;
+          // 强阶梯轮廓：层顶深收、层底大张，半径只在接近裙边时才外翻（扇贝形）
+          var rTop = radiusAt(clamp(yTopH, 0, 1)) * 0.78;
+          var rBot = radiusAt(clamp(yBotH, 0, 1)) * 1.30;
+          var r = lerp(rTop, rBot, Math.pow(s, 2.1)) + Math.sin(s * Math.PI) * 0.03 * rBot;
+          var droop = 0.13 * smoothstep(0.78, 1.0, s) * (0.5 + rBot / BASE_R * 0.7);
+          var y = tierTopY - s * tierH - droop;
+          var ang = Math.random() * Math.PI * 2;
+          var rr = r * rand(0.80, 1.0); // 体积感：内层略暗
+          if (rim) rr = r * rand(1.0, 1.04);
+          var p1 = [Math.cos(ang) * rr, y, Math.sin(ang) * rr];
+          var h = clamp((y - BASE_Y) / TREE_H, 0, 1);
+          gradColor(h, c);
+          var bright = 0.55 + 0.45 * (rr / Math.max(r, 0.001));
+          if (s < 0.25) bright *= 0.38; // 裙边正下方的凹槽压暗，台阶分明
+          if (s > 0.78) bright *= 1.4; // 裙边更亮
+          if (rim) bright *= 1.6;
+          bright *= rand(0.82, 1.12);
+          var col = [c[0] * bright, c[1] * bright, c[2] * bright];
+          var size = rand(0.013, 0.027);
+          if (Math.random() < 0.045) { // 金色小灯
+            col = [1.0 * rand(1.1, 1.4), 0.78 * rand(1.1, 1.35), 0.34];
+            size = rand(0.024, 0.036);
+          }
+          setP(sys, i, scattered(p1, 1.75, 2.6, 0.55), p1, cloudTarget(), col, size);
+        }
+        return sys;
+      }
+
+      /* ----- 树干：金棕渐变，基本被树冠遮住 ----- */
+      function buildTrunk(count) {
+        var sys = makeSystem(count);
+        for (var i = 0; i < count; i++) {
+          var y = rand(-0.38, 0.22);
+          var ang = Math.random() * Math.PI * 2;
+          var rr = rand(0.02, 0.10) * (1 - (y + 0.38) * 0.5);
+          var p1 = [Math.cos(ang) * rr, y, Math.sin(ang) * rr];
+          var t = (y + 0.38) / 0.6;
+          var col = [lerp(0.62, 1.0, t) * 0.9, lerp(0.36, 0.72, t) * 0.85, lerp(0.14, 0.42, t) * 0.8];
+          setP(sys, i, scattered(p1, 1.8, 2.4, 0.4), p1, cloudTarget(), col, rand(0.016, 0.028));
+        }
+        return sys;
+      }
+
+      /* ----- 地面：雪盘（散开时留在原地，只变淡） ----- */
+      function buildGround(discCount) {
+        var sys = makeSystem(discCount);
+        for (var i = 0; i < discCount; i++) {
+          var ang = Math.random() * Math.PI * 2;
+          var rr = 2.75 * Math.sqrt(Math.random());
+          var p1 = [Math.cos(ang) * rr, -0.375 + rand(-0.008, 0.014), Math.sin(ang) * rr];
+          var fade = 1 - rr / 2.9;
+          var wht = Math.random() * 0.5;
+          var col = [
+            (0.45 + wht * 0.5) * (0.25 + fade * 0.6),
+            (0.58 + wht * 0.4) * (0.25 + fade * 0.6),
+            (0.95) * (0.28 + fade * 0.62)
+          ];
+          setP(sys, i, scattered(p1, 1.6, 2.2, 0.5), p1, p1, col, rand(0.014, 0.030));
+        }
+        return sys;
+      }
+
+      /* ----- 地面 3 圈发光光环：窄带、高亮、独立成系统 ----- */
+      function buildRings(count) {
+        var sys = makeSystem(count);
+        var radii = [0.82, 1.26, 1.68];
+        var per = [0.24, 0.34, 0.42]; // 按周长分配
+        for (var i = 0; i < count; i++) {
+          var pick = Math.random(), ri = radii[2], acc = 0;
+          for (var k = 0; k < 3; k++) { acc += per[k]; if (pick <= acc) { ri = radii[k]; break; } }
+          var a2 = Math.random() * Math.PI * 2;
+          var r2 = ri + rand(-0.045, 0.045); // 窄带才成“圈”
+          var p1 = [Math.cos(a2) * r2, -0.360 + rand(-0.003, 0.005), Math.sin(a2) * r2];
+          var b = rand(1.25, 1.95);
+          var col = [0.70 * b, 0.86 * b, 1.30 * b];
+          setP(sys, i, scattered(p1, 1.6, 2.2, 0.5), p1, p1, col, rand(0.020, 0.034));
+        }
+        return sys;
+      }
+
+      /* ----- 树顶爱心：经典心形公式填充 ----- */
+      var HEART_CY = TIP_Y + 0.36;
+      function buildHeart(count) {
+        var sys = makeSystem(count);
+        for (var i = 0; i < count; i++) {
+          var t = Math.random() * Math.PI * 2;
+          var k = Math.sqrt(Math.random());
+          var hx = 16 * Math.pow(Math.sin(t), 3);
+          var hy = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+          var S = 0.0215;
+          var x = hx * k * S, y = (hy + 2.5) * k * S;
+          var z = rand(-1, 1) * 0.075 * (1 - k * 0.45);
+          var p1 = [x, HEART_CY + y, z];
+          var d = clamp(Math.hypot(x, y) / 0.36, 0, 1);
+          var core = smoothstep(0.55, 0.0, d);
+          var col = [
+            lerp(1.00, 1.22, core),
+            lerp(0.30, 1.02, core),
+            lerp(0.62, 1.10, core)
+          ];
+          var p0 = [x * rand(1.8, 2.6) + rand(-0.5, 0.5),
+                    HEART_CY + y * rand(1.8, 2.6) + rand(-0.4, 0.7),
+                    z * 2 + rand(-0.5, 0.5)];
+          setP(sys, i, p0, p1, cloudTarget(), col, rand(0.015, 0.028));
+        }
+        return sys;
+      }
+
+      /* ----- 星芒：贴在树表面的四角星 ----- */
+      function buildSparkles(count) {
+        var sys = makeSystem(count);
+        var cWarm = [1.0, 0.96, 0.88], cGold = [1.0, 0.80, 0.36],
+            cPink = [1.0, 0.45, 0.75], cCyan = [0.55, 0.95, 1.0];
+        for (var i = 0; i < count; i++) {
+          var h = Math.pow(Math.random(), 0.9);
+          var y = BASE_Y + h * TREE_H * 0.985;
+          var r = radiusAt(h) * rand(0.97, 1.03);
+          var ang = Math.random() * Math.PI * 2;
+          var p1 = [Math.cos(ang) * r, y, Math.sin(ang) * r];
+          var pick = Math.random();
+          var col = pick < 0.68 ? cWarm : pick < 0.81 ? cGold : pick < 0.90 ? cPink : cCyan;
+          var hero = Math.random() < 0.045;
+          var size = hero ? rand(0.15, 0.21) : rand(0.05, 0.095);
+          setP(sys, i, scattered(p1, 1.8, 2.5, 0.5), p1, cloudTarget(), col.slice(), size);
+          sys.phase[i] = rand(0, Math.PI * 2);
+          sys.delay[i] = Math.random() * 0.4;
+        }
+        return sys;
+      }
+
+      /* ----- 空气浮尘 ----- */
+      function buildDust(count) {
+        var sys = makeSystem(count);
+        var palette = [[0.65, 0.75, 1.0], [1.0, 0.7, 0.9], [0.6, 1.0, 0.85], [1.0, 0.9, 0.6]];
+        for (var i = 0; i < count; i++) {
+          var ang = Math.random() * Math.PI * 2;
+          var rr = rand(0.4, 3.1);
+          var p1 = [Math.cos(ang) * rr, rand(-0.3, 3.3), Math.sin(ang) * rr];
+          var col = palette[(Math.random() * palette.length) | 0];
+          var b = rand(0.25, 0.6);
+          setP(sys, i, p1, p1, p1, [col[0] * b, col[1] * b, col[2] * b], rand(0.012, 0.026));
+          sys.delay[i] = 0;
+        }
+        return sys;
+      }
+
+      /* ----- 背景星 ----- */
+      function buildStars(count) {
+        var sys = makeSystem(count);
+        for (var i = 0; i < count; i++) {
+          var ang = Math.random() * Math.PI * 2;
+          var el = rand(-0.05, 1.2);
+          var R = rand(30, 55);
+          var p1 = [Math.cos(ang) * Math.cos(el) * R, Math.sin(el) * R - 2, -Math.abs(Math.sin(ang)) * Math.cos(el) * R - rand(4, 20)];
+          var b = rand(0.35, 1.0);
+          var tint = Math.random();
+          var col = tint < 0.75 ? [b, b, b * 1.05] : tint < 0.88 ? [b * 0.8, b * 0.88, b * 1.2] : [b * 1.15, b * 0.9, b * 0.95];
+          setP(sys, i, p1, p1, p1, col, rand(0.05, 0.16));
+          sys.delay[i] = 0;
+        }
+        return sys;
+      }
+
+      /* ----- 飘雪（独立属性） ----- */
+      function buildSnow(count) {
+        var pos = new Float32Array(count * 3), seed = new Float32Array(count * 4);
+        for (var i = 0; i < count; i++) {
+          pos[i * 3] = rand(-4.6, 4.6);
+          pos[i * 3 + 1] = rand(-0.4, 4.8);
+          pos[i * 3 + 2] = rand(-3.6, 3.2);
+          seed[i * 4] = rand(0.14, 0.42);        // 落速
+          seed[i * 4 + 1] = rand(0, Math.PI * 2); // 摆动相位
+          seed[i * 4 + 2] = rand(0.009, 0.022);   // 大小
+          seed[i * 4 + 3] = rand(0.5, 1.0);       // 亮度
+        }
+        return { n: count, pos: pos, seed: seed };
+      }
+
+      /* ============================================================
+         着色器
+         ============================================================ */
+      var BG_VERT = [
+        "attribute vec2 aXY;",
+        "varying vec2 vUv;",
+        "void main(){ vUv = aXY*0.5+0.5; gl_Position = vec4(aXY, 0.999, 1.0); }"
+      ].join("\n");
+
+      var BG_FRAG = [
+        "precision highp float;",
+        "varying vec2 vUv;",
+        "uniform float uTime;",
+        "uniform vec2 uHalo;",
+        "float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453123); }",
+        "float noise(vec2 p){",
+        "  vec2 i = floor(p), f = fract(p);",
+        "  f = f*f*(3.0-2.0*f);",
+        "  return mix(mix(hash(i), hash(i+vec2(1,0)), f.x),",
+        "             mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), f.x), f.y);",
+        "}",
+        "float fbm(vec2 p){",
+        "  float v = 0.0, a = 0.55;",
+        "  for(int k=0;k<4;k++){ v += a*noise(p); p = p*2.13 + 17.7; a *= 0.5; }",
+        "  return v;",
+        "}",
+        "void main(){",
+        "  vec2 uv = vUv;",
+        // 深蓝紫竖向渐变
+        "  vec3 col = mix(vec3(0.012,0.016,0.055), vec3(0.030,0.045,0.130), smoothstep(0.0,0.62,uv.y));",
+        "  col = mix(col, vec3(0.075,0.045,0.170), smoothstep(0.55,1.05,uv.y)*0.75);",
+        // 左侧紫色星云 / 右侧蓝色星云
+        "  float nL = fbm(uv*vec2(3.0,4.2) + vec2(1.7,0.4) + uTime*0.004);",
+        "  float mL = smoothstep(0.52,0.95,nL) * smoothstep(0.85,0.15,uv.x) * smoothstep(0.05,0.55,uv.y);",
+        "  col += vec3(0.36,0.14,0.72) * mL * 0.55;",
+        "  float nR = fbm(uv*vec2(3.4,3.8) + vec2(8.3,2.9) - uTime*0.003);",
+        "  float mR = smoothstep(0.52,0.95,nR) * smoothstep(0.25,0.95,uv.x) * smoothstep(0.10,0.6,uv.y);",
+        "  col += vec3(0.10,0.26,0.78) * mR * 0.5;",
+        // 树顶后的粉色光晕
+        "  float d = length((uv - uHalo)*vec2(1.35,1.0));",
+        "  col += vec3(0.85,0.30,0.55) * exp(-d*d*9.0) * 0.30;",
+        "  col += vec3(0.55,0.35,0.85) * exp(-d*d*3.0) * 0.12;",
+        // 底部雪地微光 + 暗角
+        "  col += vec3(0.10,0.16,0.34) * smoothstep(0.30,0.0,uv.y) * 0.35;",
+        "  float vig = smoothstep(1.25, 0.45, length(uv-vec2(0.5,0.46)));",
+        "  col *= 0.55 + 0.45*vig;",
+        "  gl_FragColor = vec4(col, 1.0);",
+        "}"
+      ].join("\n");
+
+      // 粒子顶点着色器：形成动画（pos0→pos1）之后再叠加手势散开（→pos2）
+      var SCATTER_SNIPPET = [
+        "  float st = clamp(uScatter*1.6 - aDelay*0.75, 0.0, 1.0);",
+        "  st = st*st*(3.0-2.0*st);",
+        "  pos = mix(pos, aPos2, st);",
+        "  float swA = st * uTime * 0.05;",
+        "  float cw = cos(swA), sw = sin(swA);",
+        "  pos.xz = mat2(cw,-sw,sw,cw)*pos.xz;"
+      ].join("\n");
+
+      var PT_VERT = [
+        "attribute vec3 aPos0;",
+        "attribute vec3 aPos1;",
+        "attribute vec3 aPos2;",
+        "attribute vec3 aColor;",
+        "attribute float aSize;",
+        "attribute float aPhase;",
+        "attribute float aDelay;",
+        "uniform mat4 uProj;",
+        "uniform mat4 uMV;",
+        "uniform float uTime, uForm, uScatter, uScale, uSizeMul, uBrightMul, uSway, uTwinkle, uPulse, uAlpha;",
+        "varying vec3 vColor;",
+        "varying float vA;",
+        "void main(){",
+        "  float t = clamp((uForm - aDelay) / max(1.0 - aDelay, 0.001), 0.0, 1.0);",
+        "  t = t*t*(3.0-2.0*t);",
+        "  vec3 pos = mix(aPos0, aPos1, t);",
+        SCATTER_SNIPPET,
+        "  float ang = (1.0-t)*2.4;",
+        "  float ca = cos(ang), sa = sin(ang);",
+        "  pos.xz = mat2(ca,-sa,sa,ca)*pos.xz;",
+        "  pos.x += sin(uTime*0.7 + aPhase)*uSway;",
+        "  pos.z += cos(uTime*0.55 + aPhase*1.31)*uSway;",
+        "  pos.y += sin(uTime*0.5 + aPhase*0.7)*uSway*0.6;",
+        "  float tw = 1.0 - uTwinkle + uTwinkle*(0.70 + 0.30*sin(uTime*(1.1+fract(aPhase*0.618)*1.7) + aPhase*7.0));",
+        "  vColor = aColor * tw * uBrightMul * uPulse;",
+        "  vA = uAlpha * (0.25 + 0.75*t);",
+        "  vec4 mv = uMV * vec4(pos, 1.0);",
+        "  gl_Position = uProj * mv;",
+        "  float ps = aSize * uSizeMul * uPulse * uScale / max(0.1, -mv.z);",
+        "  gl_PointSize = clamp(ps, 1.0, 150.0);",
+        "}"
+      ].join("\n");
+
+      var PT_FRAG = [
+        "precision mediump float;",
+        "varying vec3 vColor;",
+        "varying float vA;",
+        "void main(){",
+        "  vec2 q = gl_PointCoord - 0.5;",
+        "  float d2 = dot(q,q)*4.0;",
+        "  float a = (exp(-d2*5.0) + exp(-d2*1.7)*0.32) * vA;",
+        "  if(a < 0.004) discard;",
+        "  gl_FragColor = vec4(vColor * a, 1.0);",
+        "}"
+      ].join("\n");
+
+      var SP_VERT = [
+        "attribute vec3 aPos0;",
+        "attribute vec3 aPos1;",
+        "attribute vec3 aPos2;",
+        "attribute vec3 aColor;",
+        "attribute float aSize;",
+        "attribute float aPhase;",
+        "attribute float aDelay;",
+        "uniform mat4 uProj;",
+        "uniform mat4 uMV;",
+        "uniform float uTime, uForm, uScatter, uScale;",
+        "varying vec3 vColor;",
+        "varying float vTw;",
+        "void main(){",
+        "  float t = clamp((uForm - aDelay) / max(1.0 - aDelay, 0.001), 0.0, 1.0);",
+        "  t = t*t*(3.0-2.0*t);",
+        "  vec3 pos = mix(aPos0, aPos1, t);",
+        SCATTER_SNIPPET,
+        "  float ang = (1.0-t)*2.4;",
+        "  float ca = cos(ang), sa = sin(ang);",
+        "  pos.xz = mat2(ca,-sa,sa,ca)*pos.xz;",
+        "  float pulse = 0.5 + 0.5*sin(uTime*(0.9+fract(aPhase*0.377)*1.6) + aPhase*9.0);",
+        "  vTw = (0.10 + 0.90*pulse*pulse*pulse) * t;",
+        "  vColor = aColor;",
+        "  vec4 mv = uMV * vec4(pos, 1.0);",
+        "  gl_Position = uProj * mv;",
+        "  gl_PointSize = clamp(aSize * uScale / max(0.1,-mv.z), 1.0, 190.0);",
+        "}"
+      ].join("\n");
+
+      var SP_FRAG = [
+        "precision mediump float;",
+        "varying vec3 vColor;",
+        "varying float vTw;",
+        "void main(){",
+        "  vec2 p = gl_PointCoord*2.0 - 1.0;",
+        "  float ax = max(0.0, 1.0-abs(p.x)), ay = max(0.0, 1.0-abs(p.y));",
+        "  float star = pow(ax,10.0)*pow(ay,2.2) + pow(ay,10.0)*pow(ax,2.2);",
+        "  vec2 q = mat2(0.7071,-0.7071,0.7071,0.7071)*p;",
+        "  float bx = max(0.0, 1.0-abs(q.x)), by = max(0.0, 1.0-abs(q.y));",
+        "  star += 0.45*(pow(bx,12.0)*pow(by,3.0) + pow(by,12.0)*pow(bx,3.0));",
+        "  float core = exp(-dot(p,p)*5.0)*0.9;",
+        "  float a = (star*1.15 + core) * vTw;",
+        "  if(a < 0.004) discard;",
+        "  gl_FragColor = vec4(vColor * a, 1.0);",
+        "}"
+      ].join("\n");
+
+      var SNOW_VERT = [
+        "attribute vec3 aPos;",
+        "attribute vec4 aSeed;",
+        "uniform mat4 uProj;",
+        "uniform mat4 uMV;",
+        "uniform float uTime, uScale;",
+        "varying float vA;",
+        "void main(){",
+        "  float span = 5.2;",
+        "  float y = mod(aPos.y + 0.4 - uTime*aSeed.x, span) - 0.4;",
+        "  vec3 pos = vec3(aPos.x + sin(uTime*0.6 + aSeed.y)*0.28 + sin(uTime*0.23 + aSeed.y*2.0)*0.12, y, aPos.z);",
+        "  float land = smoothstep(-0.40, -0.05, y);",
+        "  float born = smoothstep(4.8, 4.1, y);",
+        "  vA = land * born * aSeed.w;",
+        "  vec4 mv = uMV * vec4(pos, 1.0);",
+        "  gl_Position = uProj * mv;",
+        "  gl_PointSize = clamp(aSeed.z * uScale / max(0.1,-mv.z), 1.0, 26.0);",
+        "}"
+      ].join("\n");
+
+      var SNOW_FRAG = [
+        "precision mediump float;",
+        "varying float vA;",
+        "void main(){",
+        "  vec2 q = gl_PointCoord - 0.5;",
+        "  float d2 = dot(q,q)*4.0;",
+        "  float a = exp(-d2*3.5) * vA * 0.5;",
+        "  if(a < 0.004) discard;",
+        "  gl_FragColor = vec4(vec3(0.92,0.95,1.05) * a, 1.0);",
+        "}"
+      ].join("\n");
+
+      // 照片贴片：带纹理的四边形
+      var PHOTO_VERT = [
+        "attribute vec2 aXY;",
+        "attribute vec2 aUV;",
+        "uniform mat4 uMVP;",
+        "varying vec2 vUv;",
+        "void main(){",
+        "  vUv = aUV;",
+        "  gl_Position = uMVP * vec4(aXY, 0.0, 1.0);",
+        "}"
+      ].join("\n");
+
+      var PHOTO_FRAG = [
+        "precision mediump float;",
+        "varying vec2 vUv;",
+        "uniform sampler2D uTex;",
+        "uniform float uAlpha;",
+        "void main(){",
+        "  vec4 c = texture2D(uTex, vUv);",
+        "  gl_FragColor = vec4(c.rgb, c.a * uAlpha);",
+        "}"
+      ].join("\n");
+
+      /* ============================================================
+         WebGL 初始化
+         ============================================================ */
+      var canvas = document.getElementById("scene");
+      var gl = canvas.getContext("webgl", { antialias: false, alpha: false, depth: false }) ||
+               canvas.getContext("experimental-webgl");
+      if (!gl) {
+        document.getElementById("fallback").style.display = "flex";
+        throw new Error("WebGL unavailable");
+      }
+
+      function compile(type, src) {
+        var sh = gl.createShader(type);
+        gl.shaderSource(sh, src);
+        gl.compileShader(sh);
+        if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+          console.error(gl.getShaderInfoLog(sh));
+        }
+        return sh;
+      }
+      function makeProgram(vs, fs, attribs) {
+        var pr = gl.createProgram();
+        gl.attachShader(pr, compile(gl.VERTEX_SHADER, vs));
+        gl.attachShader(pr, compile(gl.FRAGMENT_SHADER, fs));
+        for (var i = 0; i < attribs.length; i++) gl.bindAttribLocation(pr, i, attribs[i]);
+        gl.linkProgram(pr);
+        var U = {};
+        var n = gl.getProgramParameter(pr, gl.ACTIVE_UNIFORMS);
+        for (var j = 0; j < n; j++) {
+          var info = gl.getActiveUniform(pr, j);
+          U[info.name] = gl.getUniformLocation(pr, info.name);
+        }
+        return { pr: pr, U: U };
+      }
+      var PT_ATTRS = ["aPos0", "aPos1", "aPos2", "aColor", "aSize", "aPhase", "aDelay"];
+      var bgProg = makeProgram(BG_VERT, BG_FRAG, ["aXY"]);
+      var ptProg = makeProgram(PT_VERT, PT_FRAG, PT_ATTRS);
+      var spProg = makeProgram(SP_VERT, SP_FRAG, PT_ATTRS);
+      var snowProg = makeProgram(SNOW_VERT, SNOW_FRAG, ["aPos", "aSeed"]);
+      var photoProg = makeProgram(PHOTO_VERT, PHOTO_FRAG, ["aXY", "aUV"]);
+
+      function upload(sys) {
+        var bufs = [];
+        var data = [sys.pos0, sys.pos1, sys.pos2, sys.col, sys.size, sys.phase, sys.delay];
+        for (var i = 0; i < 7; i++) {
+          var b = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, b);
+          gl.bufferData(gl.ARRAY_BUFFER, data[i], gl.STATIC_DRAW);
+          bufs.push(b);
+        }
+        return { bufs: bufs, n: sys.n };
+      }
+      function bindSystem(prog, up) {
+        var sizes = [3, 3, 3, 3, 1, 1, 1];
+        for (var i = 0; i < 7; i++) {
+          gl.bindBuffer(gl.ARRAY_BUFFER, up.bufs[i]);
+          gl.enableVertexAttribArray(i);
+          gl.vertexAttribPointer(i, sizes[i], gl.FLOAT, false, 0, 0);
+        }
+      }
+      function unbindSystem() {
+        for (var i = 0; i < 7; i++) gl.disableVertexAttribArray(i);
+      }
+
+      var isCoarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+      var leafCount = isCoarse ? 42000 : 58000;
+
+      var leaves = upload(buildLeaves(leafCount));
+      var trunk = upload(buildTrunk(1000));
+      var ground = upload(buildGround(5200));
+      var rings = upload(buildRings(4600));
+      var heart = upload(buildHeart(2600));
+      var dust = upload(buildDust(850));
+      var stars = upload(buildStars(750));
+      var sparkles = upload(buildSparkles(900));
+
+      var snowData = buildSnow(isCoarse ? 1800 : 2600);
+      var snowBufs = [];
+      [snowData.pos, snowData.seed].forEach(function (arr) {
+        var b = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, b);
+        gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW);
+        snowBufs.push(b);
+      });
+
+      var bgBuf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, bgBuf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+
+      // 照片四边形几何（三角形带）
+      var photoQuadPos = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, photoQuadPos);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5]), gl.STATIC_DRAW);
+      var photoQuadUV = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, photoQuadUV);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]), gl.STATIC_DRAW);
+
+      /* ============================================================
+         照片贴片：拍立得卡片（默认节日卡 / 用户上传）
+         全部在本机生成纹理，不上传、不保存
+         ============================================================ */
+      var MAX_PHOTOS = 24;
+      var PHOTO_W = 0.36, PHOTO_H = 0.45; // 世界单位（512×640 比例）
+      var photos = []; // {tex, src, cap, treePos, angle, scatterPos, delay, tilt, scale, _sx, _sy, _vis}
+
+      function makeTexture(source) {
+        var tex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        return tex;
+      }
+
+      // 拍立得画布：白边 + 底部大边 + 可选题字
+      function polaroidCanvas(drawInner, caption) {
+        var cv = document.createElement("canvas");
+        cv.width = 512; cv.height = 640;
+        var ctx = cv.getContext("2d");
+        ctx.fillStyle = "#fdfdf7";
+        ctx.fillRect(0, 0, 512, 640);
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(44, 44, 424, 424);
+        ctx.clip();
+        drawInner(ctx, 44, 44, 424, 424);
+        ctx.restore();
+        ctx.strokeStyle = "rgba(0,0,0,0.10)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(44, 44, 424, 424);
+        if (caption) {
+          ctx.fillStyle = "#6a6a60";
+          ctx.font = "italic 30px Georgia, 'Songti SC', serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(caption, 256, 556);
+        }
+        return cv;
+      }
+
+      // 默认节日卡：渐变 + 图案 + 文字（无外部图片）
+      function defaultCard(i) {
+        var themes = [
+          { g: ["#7a1020", "#c2273a"], t: "JOYEUX NOEL", cap: "Joyeux Noel" },
+          { g: ["#0d4d2e", "#1d7a4a"], t: "MERRY CHRISTMAS", cap: "Merry Christmas" },
+          { g: ["#8a6414", "#d9a441"], t: "天天开心", cap: "天天开心" },
+          { g: ["#2c1e6e", "#6a3fb5"], t: "圣诞快乐", cap: "圣诞快乐" },
+          { g: ["#0e3a5c", "#2a7ab0"], t: "平安喜乐", cap: "平安喜乐" },
+          { g: ["#7c2050", "#c24d8a"], t: "MERRY & BRIGHT", cap: "Merry & Bright" }
+        ];
+        var th = themes[i % themes.length];
+        var cv = polaroidCanvas(function (ctx, x, y, w, h) {
+          var gr = ctx.createLinearGradient(x, y, x + w, y + h);
+          gr.addColorStop(0, th.g[0]);
+          gr.addColorStop(1, th.g[1]);
+          ctx.fillStyle = gr;
+          ctx.fillRect(x, y, w, h);
+          // 雪点
+          ctx.fillStyle = "rgba(255,255,255,0.5)";
+          for (var k = 0; k < 46; k++) {
+            ctx.beginPath();
+            ctx.arc(x + Math.random() * w, y + Math.random() * h, 1.5 + Math.random() * 2.6, 0, 6.2832);
+            ctx.fill();
+          }
+          // 小星
+          ctx.fillStyle = "rgba(255,236,170,0.9)";
+          for (var s = 0; s < 7; s++) {
+            var sx = x + 30 + Math.random() * (w - 60), sy = y + 30 + Math.random() * (h - 60), r = 5 + Math.random() * 5;
+            ctx.beginPath();
+            for (var p = 0; p < 8; p++) {
+              var a = p * Math.PI / 4 - Math.PI / 2, rr = p % 2 ? r * 0.38 : r;
+              var px = sx + Math.cos(a) * rr, py = sy + Math.sin(a) * rr;
+              if (p === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.fill();
+          }
+          // 主文字
+          ctx.fillStyle = "#fff";
+          ctx.shadowColor = "rgba(0,0,0,0.35)";
+          ctx.shadowBlur = 10;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          var isZh = /[一-鿿]/.test(th.t);
+          ctx.font = (isZh ? "bold 74px " : "bold 44px ") + "'PingFang SC','Microsoft YaHei',sans-serif";
+          var words = th.t.split(" ");
+          if (words.length === 2) {
+            ctx.fillText(words[0], x + w / 2, y + h / 2 - 34);
+            ctx.fillText(words[1], x + w / 2, y + h / 2 + 34);
+          } else {
+            ctx.fillText(th.t, x + w / 2, y + h / 2);
+          }
+          ctx.shadowBlur = 0;
+        }, th.cap);
+        return { canvas: cv, src: cv.toDataURL("image/png"), cap: th.cap };
+      }
+
+      function layoutPhotos() {
+        var N = photos.length;
+        for (var i = 0; i < N; i++) {
+          var ph = photos[i];
+          var h = 0.13 + 0.74 * ((i * 0.61803) % 1);
+          var a = i * 2.39996; // 黄金角分布
+          var r = radiusAt(h) * 1.05 + 0.09;
+          ph.treePos = [Math.cos(a) * r, BASE_Y + h * TREE_H + 0.04, Math.sin(a) * r];
+          ph.angle = a;
+          var ra = (i / Math.max(1, N)) * Math.PI * 2 + 0.6;
+          ph.scatterPos = [Math.cos(ra) * 2.35, 1.5 + Math.sin(i * 1.7) * 0.55, Math.sin(ra) * 2.35];
+          ph.delay = (i % 8) / 8 * 0.5;
+          ph.tilt = rand(-0.16, 0.16);
+          ph.scale = rand(0.92, 1.1);
+          ph._vis = false;
+        }
+      }
+
+      function setPhotos(list) {
+        for (var i = 0; i < photos.length; i++) gl.deleteTexture(photos[i].tex);
+        photos = list.map(function (item) {
+          return {
+            tex: makeTexture(item.canvas),
+            src: item.src,
+            cap: item.cap || "Merry Christmas",
+            treePos: [0, 0, 0], scatterPos: [0, 0, 0],
+            angle: 0, delay: 0, tilt: 0, scale: 1, _vis: false, _sx: 0, _sy: 0
+          };
+        });
+        layoutPhotos();
+        if (focusIndex >= photos.length) closeFocus();
+      }
+
+      function initDefaultPhotos() {
+        var list = [];
+        for (var i = 0; i < 6; i++) list.push(defaultCard(i));
+        setPhotos(list);
+      }
+
+      /* ----- 上传照片：只在本机读取 ----- */
+      function handleFiles(files) {
+        var imgs = [];
+        for (var i = 0; i < files.length; i++) {
+          if (files[i].type && files[i].type.indexOf("image/") === 0) imgs.push(files[i]);
+        }
+        if (!imgs.length) { toast("没有读到图片文件"); return; }
+        var capped = imgs.length > MAX_PHOTOS;
+        if (capped) imgs = imgs.slice(0, MAX_PHOTOS);
+        var loaded = [], done = 0;
+        imgs.forEach(function (file) {
+          var url = URL.createObjectURL(file);
+          var img = new Image();
+          img.onload = function () {
+            var cv = polaroidCanvas(function (ctx, x, y, w, h) {
+              var s = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+              var dw = img.naturalWidth * s, dh = img.naturalHeight * s;
+              ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+            }, "Merry Christmas");
+            loaded.push({ canvas: cv, src: url, cap: "Merry Christmas" });
+            if (++done === imgs.length) finishUpload(loaded, capped);
+          };
+          img.onerror = function () {
+            URL.revokeObjectURL(url);
+            if (++done === imgs.length) finishUpload(loaded, capped);
+          };
+          img.src = url;
+        });
+      }
+      function finishUpload(loaded, capped) {
+        if (!loaded.length) { toast("照片读取失败，换几张试试"); return; }
+        setPhotos(loaded);
+        toast(capped
+          ? "树上最多挂 " + MAX_PHOTOS + " 张，已挂前 " + loaded.length + " 张"
+          : "已把 " + loaded.length + " 张照片挂到树上，点任意一张可放大");
+      }
+      var fileInput = document.getElementById("fileInput");
+      document.getElementById("btnUpload").addEventListener("click", function () { fileInput.click(); });
+      fileInput.addEventListener("change", function () {
+        handleFiles(fileInput.files);
+        fileInput.value = "";
+      });
+      var dropHint = document.getElementById("dropHint");
+      var dragDepth = 0;
+      window.addEventListener("dragenter", function (e) {
+        e.preventDefault();
+        dragDepth++;
+        dropHint.classList.add("on");
+      });
+      window.addEventListener("dragleave", function (e) {
+        dragDepth = Math.max(0, dragDepth - 1);
+        if (!dragDepth) dropHint.classList.remove("on");
+      });
+      window.addEventListener("dragover", function (e) { e.preventDefault(); });
+      window.addEventListener("drop", function (e) {
+        e.preventDefault();
+        dragDepth = 0;
+        dropHint.classList.remove("on");
+        if (e.dataTransfer && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+      });
+
+      /* ----- 照片放大层 ----- */
+      var focusOverlay = document.getElementById("focusOverlay");
+      var focusImg = document.getElementById("focusImg");
+      var focusCap = document.getElementById("focusCap");
+      var focusIndex = -1;
+
+      function openFocus(i) {
+        if (i < 0 || i >= photos.length) return;
+        focusIndex = i;
+        focusImg.src = photos[i].src;
+        focusCap.textContent = photos[i].cap;
+        focusOverlay.classList.remove("on");
+        void focusOverlay.offsetWidth; // 重启动画
+        focusOverlay.classList.add("on");
+      }
+      function closeFocus() {
+        focusIndex = -1;
+        focusOverlay.classList.remove("on");
+      }
+      function cycleFocus() {
+        if (!photos.length) return;
+        if (focusIndex < 0) {
+          // 首选离屏幕中心最近的可见照片
+          var best = 0, bd = 1e9, cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+          for (var i = 0; i < photos.length; i++) {
+            if (!photos[i]._vis) continue;
+            var d = Math.hypot(photos[i]._sx - cx, photos[i]._sy - cy);
+            if (d < bd) { bd = d; best = i; }
+          }
+          openFocus(best);
+        } else {
+          openFocus((focusIndex + 1) % photos.length);
+        }
+      }
+      document.getElementById("btnFocus").addEventListener("click", cycleFocus);
+      document.getElementById("btnFocusClose").addEventListener("click", function (e) {
+        e.stopPropagation();
+        closeFocus();
+      });
+      focusOverlay.addEventListener("click", function (e) {
+        if (e.target === focusOverlay) closeFocus();
+      });
+
+      /* ----- 绘制照片贴片 ----- */
+      function basisMatrix(right, up, nrm, pos, w, h) {
+        return new Float32Array([
+          right[0] * w, right[1] * w, right[2] * w, 0,
+          up[0] * h, up[1] * h, up[2] * h, 0,
+          nrm[0], nrm[1], nrm[2], 0,
+          pos[0], pos[1], pos[2], 1
+        ]);
+      }
+      var _tv = [0, 0, 0];
+      function drawPhotos(viewM, eye, yawEff, time) {
+        if (!photos.length) return;
+        var camRight = [viewM[0], viewM[4], viewM[8]];
+        var camUp = [viewM[1], viewM[5], viewM[9]];
+        gl.useProgram(photoProg.pr);
+        var U = photoProg.U;
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.bindBuffer(gl.ARRAY_BUFFER, photoQuadPos);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, photoQuadUV);
+        gl.enableVertexAttribArray(1);
+        gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
+        gl.uniform1i(U.uTex, 0);
+        gl.activeTexture(gl.TEXTURE0);
+
+        for (var i = 0; i < photos.length; i++) {
+          var ph = photos[i];
+          if (i === focusIndex) { ph._vis = false; continue; } // 已在放大层里
+          var lt = clamp(scatterCur * 1.5 - ph.delay * 0.5, 0, 1);
+          lt = lt * lt * (3 - 2 * lt);
+          var lp = vLerp(ph.treePos, ph.scatterPos, lt);
+          lp[1] += Math.sin(time * 0.8 + i * 1.37) * 0.05 * lt; // 散开时轻轻漂浮
+          // 模型旋转（与粒子同一套 yaw + 横向偏移）
+          rotY(lp, yawEff, _tv);
+          var wp = [_tv[0] + view.offX, _tv[1], _tv[2]];
+          // 树形态朝向：沿径向朝外、略上仰；散开时转向镜头
+          var nl = vNorm([Math.cos(ph.angle), 0.35, Math.sin(ph.angle)]);
+          rotY(nl, yawEff, _tv);
+          var nt = [_tv[0], _tv[1], _tv[2]];
+          var rt = vNorm(vCross([0, 1, 0], nt));
+          var ut = vCross(nt, rt);
+          var toCam = vNorm([eye[0] - wp[0], eye[1] - wp[1], eye[2] - wp[2]]);
+          var nb = toCam;
+          var rb = camRight, ub = camUp;
+          var right = vNorm(vLerp(rt, rb, lt));
+          var upv = vLerp(ut, ub, lt);
+          var nrm = vNorm(vCross(right, upv));
+          upv = vCross(nrm, right);
+          // 轻微滚转（散开时减弱）
+          var roll = ph.tilt * (1 - lt * 0.6);
+          if (roll) {
+            var cr = Math.cos(roll), sr = Math.sin(roll);
+            var r2 = [right[0] * cr + upv[0] * sr, right[1] * cr + upv[1] * sr, right[2] * cr + upv[2] * sr];
+            var u2 = [upv[0] * cr - right[0] * sr, upv[1] * cr - right[1] * sr, upv[2] * cr - right[2] * sr];
+            right = r2; upv = u2;
+          }
+          // 背向镜头的照片淡出，避免穿帮
+          var facing = nrm[0] * toCam[0] + nrm[1] * toCam[1] + nrm[2] * toCam[2];
+          var alpha = clamp(smoothstep(-0.15, 0.25, facing), 0, 1) * 0.98;
+          if (alpha < 0.02) { ph._vis = false; continue; }
+          var M = basisMatrix(right, upv, nrm, wp, PHOTO_W * ph.scale, PHOTO_H * ph.scale);
+          var MVP = mMul(view.proj, mMul(viewM, M));
+          gl.uniformMatrix4fv(U.uMVP, false, MVP);
+          gl.uniform1f(U.uAlpha, alpha);
+          gl.bindTexture(gl.TEXTURE_2D, ph.tex);
+          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+          // 记录屏幕坐标，供点选 / 捏合选片
+          var cx = MVP[12] / MVP[15], cy = MVP[13] / MVP[15];
+          ph._sx = (cx * 0.5 + 0.5) * window.innerWidth;
+          ph._sy = (0.5 - cy * 0.5) * window.innerHeight;
+          ph._vis = alpha > 0.3;
+        }
+        gl.disableVertexAttribArray(0);
+        gl.disableVertexAttribArray(1);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.blendFunc(gl.ONE, gl.ONE);
+      }
+
+      /* ============================================================
+         相机 / 交互 / 动画状态
+         ============================================================ */
+      var FOV = 36 * Math.PI / 180;
+      var view = { w: 1, h: 1, dpr: 1, proj: null, scaleF: 1, offX: 0, targetY: 1.40, halo: [0.58, 0.70], baseDist: 8.2 };
+
+      var zoomF = 1.0, elevation = 0.26;
+      var yaw = 0, pitchDrag = 0;
+      var autoRotate = !REDUCED;
+      var formStart = performance.now();
+      var FORM_MS = REDUCED ? 1 : 2600;
+
+      // 手势形态状态：0 = 树，1 = 散开
+      var scatterCur = 0, scatterTarget = 0;
+      // 手部位置跟随（平滑后的偏移量）
+      var yawHand = 0, pitchHand = 0, handYawTarget = 0, handPitchTarget = 0, handPresent = false;
+
+      function resize() {
+        view.dpr = Math.min(window.devicePixelRatio || 1, 2);
+        view.w = Math.floor(canvas.clientWidth * view.dpr);
+        view.h = Math.floor(canvas.clientHeight * view.dpr);
+        canvas.width = view.w;
+        canvas.height = view.h;
+        gl.viewport(0, 0, view.w, view.h);
+        var aspect = view.w / view.h;
+        view.proj = mPerspective(FOV, aspect, 0.1, 140);
+        view.scaleF = view.h / (2 * Math.tan(FOV / 2));
+        if (aspect > 1.12) {
+          view.offX = 0.55; view.targetY = 1.40; view.halo = [0.585, 0.70];
+          view.baseDist = 8.2;
+        } else {
+          view.offX = 0; view.targetY = 1.52; view.halo = [0.5, 0.60];
+          // 竖屏横向视野窄：按树宽反推距离，保证整棵树 + 地面光环入框
+          view.baseDist = Math.max(8.2, 2.3 / (Math.tan(FOV / 2) * aspect));
+        }
+      }
+      window.addEventListener("resize", resize);
+      resize();
+
+      /* ----- 形态切换（按钮与手势共用） ----- */
+      var btnScatter = document.getElementById("btnScatter");
+      var btnAssemble = document.getElementById("btnAssemble");
+      function refreshStateButtons() {
+        btnScatter.classList.toggle("active", scatterTarget === 1);
+        btnAssemble.classList.toggle("active", scatterTarget === 0);
+      }
+      function doScatter() {
+        scatterTarget = 1;
+        closeFocus();
+        refreshStateButtons();
+      }
+      function doAssemble() {
+        scatterTarget = 0;
+        closeFocus();
+        refreshStateButtons();
+      }
+      btnScatter.addEventListener("click", doScatter);
+      btnAssemble.addEventListener("click", doAssemble);
+
+      /* 拖动旋转 + 滚轮 / 双指缩放 + 点选照片 */
+      var pointers = new Map();
+      var lastPinch = 0;
+      var downInfo = null;
+      canvas.addEventListener("pointerdown", function (e) {
+        canvas.setPointerCapture(e.pointerId);
+        pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        lastPinch = 0;
+        if (pointers.size === 1) downInfo = { x: e.clientX, y: e.clientY, t: performance.now() };
+      });
+      canvas.addEventListener("pointermove", function (e) {
+        if (!pointers.has(e.pointerId)) return;
+        var prev = pointers.get(e.pointerId);
+        pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (pointers.size === 1) {
+          yaw -= (e.clientX - prev.x) * 0.0052;
+          pitchDrag = clamp(pitchDrag + (e.clientY - prev.y) * 0.0032, -0.30, 0.55);
+        } else if (pointers.size === 2) {
+          var pts = Array.from(pointers.values());
+          var d = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+          if (lastPinch > 0) zoomF = clamp(zoomF * (lastPinch / d), 0.55, 1.7);
+          lastPinch = d;
+        }
+      });
+      function endPointer(e) {
+        var wasSingle = pointers.size === 1 && pointers.has(e.pointerId);
+        pointers.delete(e.pointerId);
+        lastPinch = 0;
+        // 轻点（几乎没移动）→ 命中照片就放大
+        if (wasSingle && downInfo &&
+            performance.now() - downInfo.t < 400 &&
+            Math.hypot(e.clientX - downInfo.x, e.clientY - downInfo.y) < 9) {
+          var best = -1, bd = 80;
+          for (var i = 0; i < photos.length; i++) {
+            if (!photos[i]._vis) continue;
+            var d = Math.hypot(photos[i]._sx - e.clientX, photos[i]._sy - e.clientY);
+            if (d < bd) { bd = d; best = i; }
+          }
+          if (best >= 0) openFocus(best);
+        }
+        downInfo = null;
+      }
+      canvas.addEventListener("pointerup", endPointer);
+      canvas.addEventListener("pointercancel", endPointer);
+      canvas.addEventListener("wheel", function (e) {
+        e.preventDefault();
+        zoomF = clamp(zoomF * (e.deltaY > 0 ? 1.09 : 0.92), 0.55, 1.7);
+      }, { passive: false });
+
+      var btnRotate = document.getElementById("btnRotate");
+      btnRotate.textContent = autoRotate ? "暂停旋转" : "继续旋转";
+      btnRotate.addEventListener("click", function () {
+        autoRotate = !autoRotate;
+        btnRotate.textContent = autoRotate ? "暂停旋转" : "继续旋转";
+      });
+      document.getElementById("btnReplay").addEventListener("click", function () {
+        formStart = performance.now();
+        FORM_MS = 2600;
+        doAssemble();
+      });
+
+      /* ============================================================
+         手势识别：MediaPipe Hands（按需从 CDN 加载，全程本地运行）
+         摄像头画面只在本机处理，绝不上传
+         ============================================================ */
+      var btnCam = document.getElementById("btnCam");
+      var camWrap = document.getElementById("camWrap");
+      var camVideo = document.getElementById("camVideo");
+      var camCanvas = document.getElementById("camCanvas");
+      var camCtx = camCanvas.getContext("2d");
+      var camStatus = document.getElementById("camStatus");
+      var camOn = false, camBusy = false, camStarting = false;
+      var handsObj = null, mediaStream = null, camRAF = 0, sendBusy = false;
+      var recogRunning = false, recogFailed = false, sendFailCount = 0;
+
+      var HAND_EDGES = [
+        [0, 1], [1, 2], [2, 3], [3, 4],
+        [0, 5], [5, 6], [6, 7], [7, 8],
+        [5, 9], [9, 10], [10, 11], [11, 12],
+        [9, 13], [13, 14], [14, 15], [15, 16],
+        [13, 17], [17, 18], [18, 19], [19, 20], [0, 17]
+      ];
+      var GESTURE_LABEL = { open: "张手", fist: "握拳", pinch: "捏合", none: "无" };
+      var gCandidate = "none", gCandidateSince = 0, gCommitted = "none";
+
+      var PUBLIC_URL = "https://muse.ai/s/li-zi-sheng-dan-shu-fxn6xji4tkhxlf/oH1de6Pv9azB3-YSzBJzGqs3Dv8l1WUaS1VXifmGt6M";
+      // GitHub Pages copy: top-level hosting with no share-wrapper iframe.
+      // Placeholder until published; will be live at this URL once published.
+      var GITHUB_PAGES_URL = "https://murongshan.github.io/particle-christmas-tree/";
+      // Prompt tracking for step 2: when getUserMedia was called, how long it
+      // took to reject, and what the Permissions API said before/after. A
+      // NotAllowedError that returns in well under 2s cannot have shown a
+      // prompt the user could read and dismiss.
+      var gumStartedAt = 0, gumPermBefore = "unknown", gumPermAfter = "unknown";
+      var handsBase = null;
+      var HANDS_CDNS = [
+        "https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240",
+        "https://unpkg.com/@mediapipe/hands@0.4.1675469240"
+      ];
+
+      function isEmbedded() {
+        try { return window.self !== window.top; } catch (e) { return true; }
+      }
+      function envDiagnostic() {
+        var hasMD = !!(navigator && navigator.mediaDevices);
+        var hasGUM = !!(hasMD && navigator.mediaDevices.getUserMedia);
+        return "步骤2 环境: secureContext=" + String(window.isSecureContext) +
+          ", mediaDevices=" + (hasMD ? "有" : "无") +
+          ", getUserMedia=" + (hasGUM ? "有" : "无") +
+          ", embedded=" + (isEmbedded() ? "是" : "否") +
+          ", protocol=" + (window.location ? window.location.protocol : "?") +
+          ", host=" + (window.location ? window.location.host : "?");
+      }
+      function rawErrorText(err) {
+        if (!err) return "(无错误对象)";
+        var n = err.name || "Error";
+        var m = err.message || String(err);
+        return n + ": " + m;
+      }
+      // Only a permissions-policy / feature-policy wording counts as a frame-policy block.
+      // window.self!==window.top alone, or a generic NotAllowedError, must NEVER be
+      // labelled as a Muse/embedded restriction.
+      function isPolicyBlockedError(err) {
+        var s = (((err && err.name) || "") + " " + ((err && err.message) || "")).toLowerCase();
+        return s.indexOf("permissions policy") !== -1 ||
+          s.indexOf("permission policy") !== -1 ||
+          s.indexOf("feature policy") !== -1 ||
+          s.indexOf("policy violation") !== -1 ||
+          (s.indexOf("not allowed") !== -1 && s.indexOf("document") !== -1) ||
+          s.indexOf("blocked by permissions") !== -1;
+      }
+
+      var camHelpEl = document.getElementById("camHelp");
+      var camHelpTitle = document.getElementById("camHelpTitle");
+      var camHelpReason = document.getElementById("camHelpReason");
+      function showCamHelp(title, reason, opts) {
+        opts = opts || {};
+        camHelpTitle.textContent = title;
+        camHelpReason.textContent = reason;
+        document.getElementById("camHelpUrl").style.display = opts.showLink === false ? "none" : "block";
+        var pagesEl = document.getElementById("camHelpPagesUrl");
+        if (pagesEl) pagesEl.style.display = opts.showPages ? "block" : "none";
+        document.querySelector("#camHelp .chOpen").style.display = opts.showLink === false ? "none" : "";
+        document.getElementById("btnRetryRecog").style.display = opts.showRetry ? "" : "none";
+        // Top-level escape: only meaningful when actually embedded; shown whenever
+        // embedded (regardless of error kind), never used as proof of a restriction.
+        var topBtn = document.getElementById("btnTopOpen");
+        if (topBtn) topBtn.style.display = isEmbedded() ? "" : "none";
+        camHelpEl.classList.add("on");
+      }
+      function hideCamHelp() { camHelpEl.classList.remove("on"); }
+      document.getElementById("btnRetryRecog").addEventListener("click", function () {
+        hideCamHelp();
+        if (camOn && !recogRunning) startRecognition();
+      });
+      var btnTopOpenEl = document.getElementById("btnTopOpen");
+      if (btnTopOpenEl) btnTopOpenEl.addEventListener("click", function () {
+        // Only escape from an iframe permissions policy: open the direct
+        // top-level copy (GitHub Pages, no share-wrapper iframe) in a new tab.
+        // Uses a fixed URL constant, never the page's own address.
+        var w = null;
+        try { w = window.open(GITHUB_PAGES_URL, "_blank"); } catch (e) { w = null; }
+        if (!w) {
+          toast("浏览器拦住了新窗口，请点面板里的 GitHub Pages 链接打开");
+        }
+      });
+
+      /* ----- 分步诊断（页面可见 + 控制台同步） ----- */
+      var camStepsEl = document.getElementById("camSteps");
+      var STEP_NAMES = ["点击已收到", "请求摄像头", "预览播放", "加载识别库", "识别就绪"];
+      var stepState = ["idle", "idle", "idle", "idle", "idle"]; // idle|run|ok|fail
+      var stepDetail = "";
+      function renderSteps() {
+        var parts = [];
+        for (var i = 0; i < STEP_NAMES.length; i++) {
+          var mark = stepState[i] === "ok" ? " ✓" : stepState[i] === "run" ? " …" : stepState[i] === "fail" ? " ✗" : "";
+          var cls = stepState[i] === "ok" ? "st-ok" : stepState[i] === "run" ? "st-run" : stepState[i] === "fail" ? "st-fail" : "";
+          parts.push('<span class="' + cls + '">步骤' + (i + 1) + " " + STEP_NAMES[i] + mark + "</span>");
+        }
+        var html = parts.join(" · ");
+        if (stepDetail) html += '<span class="st-detail">' + stepDetail + "</span>";
+        camStepsEl.innerHTML = html;
+        camStepsEl.classList.add("on");
+      }
+      function setStep(idx, state, detail) {
+        stepState[idx] = state;
+        if (detail != null) stepDetail = detail;
+        if (state === "fail") console.warn("[gesture] step " + (idx + 1) + " (" + STEP_NAMES[idx] + ") FAILED: " + (detail || ""));
+        else console.log("[gesture] step " + (idx + 1) + " (" + STEP_NAMES[idx] + ") -> " + state);
+        renderSteps();
+      }
+      function resetSteps() {
+        stepState = ["idle", "idle", "idle", "idle", "idle"];
+        stepDetail = "";
+        renderSteps();
+      }
+      function withTimeout(promise, ms, label) {
+        return Promise.race([
+          Promise.resolve(promise),
+          new Promise(function (_, reject) {
+            setTimeout(function () {
+              var e = new Error("timeout after " + ms + "ms: " + label);
+              e.name = "TimeoutError";
+              reject(e);
+            }, ms);
+          })
+        ]);
+      }
+      document.getElementById("btnCamHelpClose").addEventListener("click", hideCamHelp);
+
+      // 把失败拆开：返回 {kind, title, detail}
+      // 规则：只有错误原文明确提到 permissions/feature policy 才判定为框架策略拦截；
+      // 仅仅 embedded（self!==top）或一个笼统的 NotAllowedError 绝不贴「Muse 内受限」标签。
+      // 所有分支的 detail 都带上原始错误 name + message 原文，方便原样回报。
+      function diagnoseCamError(err, phase) {
+        var name = (err && err.name) || "";
+        var msg = (err && err.message) || String(err || "");
+        var raw = rawErrorText(err);
+        var env = envDiagnostic();
+        console.warn("[gesture] phase=" + phase + " name=" + name + " message=" + msg + " | " + env, err);
+        if (phase === "hands-load") {
+          return { kind: "hands-load", title: "手势识别库加载失败",
+            detail: "摄像头已经打开并在右下角预览，失败的是手势识别库（MediaPipe）：脚本或模型/WASM 文件没能从 CDN（jsDelivr / unpkg 都试过）加载下来，多半是当前网络拦截或 CDN 不可达。可以换个网络后点「重试手势识别」，或先用下面的按钮玩。\n原始错误: " + raw };
+        }
+        if (phase === "hands-init") {
+          return { kind: "hands-init", title: "手势识别初始化失败",
+            detail: "手势识别库已下载，但初始化（WASM 模型）失败。可以刷新页面重试，或换 Edge / Chrome 打开公开链接再试。\n原始错误: " + raw };
+        }
+        if (isPolicyBlockedError(err)) {
+          return { kind: "policy-blocked", title: "摄像头被嵌入框架的权限策略拦截",
+            detail: "浏览器明确报告权限策略拦截（见下方原始错误）：当前页面被嵌在没有下放 camera 权限的框架里（iframe 缺少 allow=\"camera\" / Permissions-Policy），框架层就会拦掉 getUserMedia，页面代码改不了这一层。请改用下方 GitHub Pages 副本（顶层直开、无框架包裹）打开，再授权摄像头。\n原始错误: " + raw + "\n" + env };
+        }
+        // Exact reported case: NotAllowedError + NO prompt ever shown + embedded.
+        // A real user dismissal takes time and leaves permission state "denied";
+        // an instant rejection while embedded, with the permission state never
+        // granted/denied by the user, means the hosting (share-wrapper) frame
+        // blocked getUserMedia before any prompt could appear. This is a
+        // host-frame block, NOT user denial, and must not use denial copy.
+        var gumElapsedMs = gumStartedAt ? Math.round(performance.now() - gumStartedAt) : -1;
+        var noPromptShown = gumElapsedMs >= 0 && gumElapsedMs < 2000 && gumPermBefore !== "denied";
+        if ((name === "NotAllowedError" || name === "PermissionDeniedError") && isEmbedded() && noPromptShown && phase === "camera") {
+          return { kind: "host-frame-blocked", title: "宿主框架在授权弹窗前就拦住了摄像头",
+            detail: "这不是你拒绝了授权：本次请求在 " + gumElapsedMs + "ms 内就被拒绝，全程没有出现过摄像头授权弹窗（权限状态 请求前=" + gumPermBefore + "）。结合页面处于嵌入状态（公开链接的分享外壳用 iframe 包裹本页、且没有下放 camera 权限），是宿主框架的 Permissions-Policy 在弹窗出现之前就拦掉了 getUserMedia，页面代码改不了这一层，也没法在这里把权限改成允许。\n解决办法：改用下方 GitHub Pages 副本打开——那是顶层直开、没有框架包裹的同一页，发布后地址为 " + GITHUB_PAGES_URL + " ，在那里点开启摄像头才会正常弹出授权。也可以点「在浏览器顶层打开」直接过去。\n原始错误: " + raw + "\n" + env + "\n步骤2 耗时: " + gumElapsedMs + "ms, 授权弹窗: 未出现" };
+        }
+        if (phase === "no-api") {
+          return { kind: "no-api", title: "当前环境没有摄像头接口",
+            detail: "浏览器没有提供 getUserMedia 接口，这不是权限拒绝。常见原因：页面不是安全上下文（非 HTTPS）、浏览器版本太旧，或当前 WebView 禁用了媒体设备接口。请看下方环境诊断的实际值判断。\n原始错误: " + raw + "\n" + env + (isEmbedded() ? "\n当前页面处于嵌入状态，可点「在浏览器顶层打开」换到顶层标签页再试（这只是备选动作，不代表已确认是嵌入导致的）。" : "") };
+        }
+        if (name === "NotFoundError" || name === "DevicesNotFoundError" || name === "OverconstrainedError") {
+          return { kind: "no-camera", title: "没有找到摄像头",
+            detail: "这台设备上没有检测到可用的摄像头（或摄像头正被其他应用占用）。关掉占用摄像头的应用后重试，或换一台带摄像头的设备。\n原始错误: " + raw + "\n" + env };
+        }
+        if (name === "NotReadableError" || name === "TrackStartError") {
+          return { kind: "busy", title: "摄像头被占用或无法读取",
+            detail: "摄像头可能正被其他应用占用，或系统暂时无法读取画面。关掉其他用到摄像头的应用后重试。\n原始错误: " + raw + "\n" + env };
+        }
+        if (name === "NotAllowedError" || name === "PermissionDeniedError" || name === "SecurityError") {
+          return { kind: "denied", title: "摄像头权限被拒绝",
+            detail: "浏览器返回了权限拒绝，但错误原文没有提到权限策略拦截，所以不能断定是嵌入框架拦截——更可能是本站点的摄像头权限被设为拒绝/未授权。请点地址栏左侧的锁/权限图标，把摄像头设为允许，然后刷新页面再点一次开启。\n原始错误: " + raw + "\n" + env + (isEmbedded() ? "\n补充：当前页面处于嵌入状态；若在站点权限里已允许仍失败，可点「在浏览器顶层打开」到顶层标签页再试。" : "") };
+        }
+        if (name === "AbortError") {
+          return { kind: "abort", title: "摄像头启动被中断",
+            detail: "摄像头启动过程被中断了，请再点一次开启摄像头手势重试。\n原始错误: " + raw + "\n" + env };
+        }
+        if (name === "TimeoutError") {
+          return { kind: "timeout", title: "请求摄像头超时",
+            detail: "getUserMedia 在 20 秒内没有返回，既没授权成功也没报错。可能是授权框被忽略、系统摄像头服务无响应，或框架层静默拦截（但没有策略错误原文，不能断定）。请确认没有未处理的授权提示后重试。\n原始错误: " + raw + "\n" + env + (isEmbedded() ? "\n当前页面处于嵌入状态，可点「在浏览器顶层打开」到顶层标签页验证。" : "") };
+        }
+        return { kind: "unknown", title: "摄像头没能启动",
+          detail: "启动失败，原因未归类，请把下方原始错误原样回报。\n原始错误: " + raw + "\n" + env + "\n阶段: " + phase };
+      }
+
+      function loadScript(src, timeoutMs) {
+        return new Promise(function (resolve, reject) {
+          if (window.Hands) { resolve(); return; }
+          var s = document.createElement("script");
+          var timer = setTimeout(function () {
+            s.onload = s.onerror = null;
+            reject(new Error("timeout loading " + src));
+          }, timeoutMs || 15000);
+          s.src = src;
+          s.async = true;
+          s.onload = function () { clearTimeout(timer); resolve(); };
+          s.onerror = function () { clearTimeout(timer); reject(new Error("load failed: " + src)); };
+          document.head.appendChild(s);
+        });
+      }
+
+      // 先预检某个 CDN 上的关键方案文件（脚本配套的 binarypb + 资产 loader），
+      // 预检不过直接换下一个 CDN，保证 hands.js 与 locateFile 的 WASM/模型同源同版本
+      function preflightBase(base) {
+        var files = ["hands.binarypb", "hands_solution_packed_assets_loader.js", "hand_landmark_lite.tflite"];
+        var chain = Promise.resolve();
+        files.forEach(function (f) {
+          chain = chain.then(function () {
+            return withTimeout(fetch(base + "/" + f, { method: "HEAD" }), 8000, "preflight " + f)
+              .then(function (r) {
+                if (!r.ok) throw new Error("preflight " + f + " HTTP " + r.status + " @ " + base);
+              });
+          });
+        });
+        return chain;
+      }
+
+      // 依次尝试多个 CDN（脚本 + 方案文件成套预检），全部失败才算 hands-load 失败
+      function loadHandsWithFallback() {
+        if (window.Hands && handsBase) return Promise.resolve(handsBase);
+        var idx = 0;
+        function attempt() {
+          if (idx >= HANDS_CDNS.length) {
+            var e = new Error("all MediaPipe CDNs failed (script + solution assets)");
+            e.name = "HandsLoadError";
+            throw e;
+          }
+          var base = HANDS_CDNS[idx++];
+          return preflightBase(base).then(function () {
+            return loadScript(base + "/hands.js", 15000);
+          }).then(function () {
+            if (!window.Hands) throw new Error("Hands global missing after load from " + base);
+            handsBase = base;
+            console.log("[gesture] MediaPipe Hands loaded from", base);
+            return base;
+          }).catch(function (err) {
+            console.warn("[gesture] CDN failed, trying next:", base, err);
+            return attempt();
+          });
+        }
+        return attempt();
+      }
+
+      function classifyGesture(lm) {
+        function d(a, b) {
+          var dx = lm[a].x - lm[b].x, dy = lm[a].y - lm[b].y;
+          return Math.sqrt(dx * dx + dy * dy);
+        }
+        var scale = d(0, 9) || 0.0001;
+        if (d(4, 8) / scale < 0.35) return "pinch"; // 拇指尖贴食指尖
+        var fingers = [[8, 6], [12, 10], [16, 14], [20, 18]];
+        var ext = 0;
+        for (var i = 0; i < 4; i++) {
+          if (d(fingers[i][0], 0) > d(fingers[i][1], 0) * 1.12) ext++;
+        }
+        if (ext >= 4) return "open";
+        if (ext <= 1) return "fist";
+        return "none";
+      }
+
+      function commitGesture(g) {
+        gCommitted = g;
+        camStatus.textContent = "当前手势：" + (GESTURE_LABEL[g] || "无");
+        if (g === "open") doScatter();
+        else if (g === "fist") doAssemble();
+        else if (g === "pinch") cycleFocus();
+      }
+
+      function onHandResults(results) {
+        if (stepState[4] !== "ok") setStep(4, "ok", "识别已就绪，正在实时识别手势");
+        camCtx.clearRect(0, 0, camCanvas.width, camCanvas.height);
+        var list = results.multiHandLandmarks;
+        if (!list || !list.length) {
+          handPresent = false;
+          handYawTarget = 0;
+          handPitchTarget = 0;
+          var now0 = performance.now();
+          if (gCandidate !== "none") { gCandidate = "none"; gCandidateSince = now0; }
+          else if (gCommitted !== "none" && now0 - gCandidateSince > 350) commitGesture("none");
+          return;
+        }
+        var lm = list[0];
+        handPresent = true;
+        // 骨架线（画布与预览同为镜像显示）
+        camCtx.strokeStyle = "rgba(120,220,255,0.85)";
+        camCtx.lineWidth = 2;
+        camCtx.beginPath();
+        for (var e = 0; e < HAND_EDGES.length; e++) {
+          var a = lm[HAND_EDGES[e][0]], b = lm[HAND_EDGES[e][1]];
+          camCtx.moveTo(a.x * camCanvas.width, a.y * camCanvas.height);
+          camCtx.lineTo(b.x * camCanvas.width, b.y * camCanvas.height);
+        }
+        camCtx.stroke();
+        camCtx.fillStyle = "#ffd76a";
+        for (var p = 0; p < 21; p++) {
+          camCtx.beginPath();
+          camCtx.arc(lm[p].x * camCanvas.width, lm[p].y * camCanvas.height, 2.6, 0, 6.2832);
+          camCtx.fill();
+        }
+        // 手掌位置 → 视角跟随（x 取镜像，和用户看到的预览一致）
+        var palm = lm[9];
+        var ux = 1 - palm.x, uy = palm.y;
+        handYawTarget = (ux - 0.5) * 2.6;
+        handPitchTarget = clamp((0.5 - uy) * 0.6, -0.25, 0.45);
+        // 手势去抖：稳定约 350ms 才生效
+        var g = classifyGesture(lm);
+        var now = performance.now();
+        if (g !== gCandidate) { gCandidate = g; gCandidateSince = now; }
+        else if (g !== gCommitted && now - gCandidateSince > 350) commitGesture(g);
+      }
+
+      function camLoop() {
+        if (!camOn) return;
+        camRAF = requestAnimationFrame(camLoop);
+        if (!sendBusy && camVideo.readyState >= 2 && handsObj && recogRunning) {
+          sendBusy = true;
+          handsObj.send({ image: camVideo }).catch(function (e) {
+            sendFailCount++;
+            console.warn("[gesture] hands.send failed (" + sendFailCount + "):", e);
+            if (sendFailCount === 3) {
+              setStep(4, "fail", "失败在步骤5：识别运行出错 " + ((e && e.name) || "") + " " + ((e && e.message) || e || ""));
+              camStatus.textContent = "摄像头已开 · 识别运行出错，可点重试";
+              showCamHelp("摄像头已打开，识别运行出错", "画面预览不受影响；手势识别在送帧时失败。可以点「重试手势识别」再试一次。", { showLink: false, showRetry: true });
+            }
+          }).then(function () {
+            sendBusy = false;
+          });
+        }
+      }
+
+      /* 只有摄像头本身失败才走这里（此时还没有画面流） */
+      function failCamera(diag, err) {
+        camStarting = false;
+        btnCam.disabled = false;
+        btnCam.textContent = "开启摄像头手势";
+        camVideo.srcObject = null;
+        var raw = err ? rawErrorText(err) : diag.title;
+        // Step log AND panel both carry the raw error name + message verbatim.
+        setStep(1, "fail", "失败在步骤2（请求摄像头）：原始错误 " + raw + " | " + envDiagnostic());
+        showCamHelp(diag.title, diag.detail, {
+          // Public link / top-level escape shown for policy blocks, missing API,
+          // unknown/timeout (as a diagnostic next step) and whenever embedded.
+          showLink: diag.kind === "policy-blocked" || diag.kind === "host-frame-blocked" || diag.kind === "no-api" || diag.kind === "unknown" || diag.kind === "timeout" || isEmbedded(),
+          // GitHub Pages link area: shown for the two host-frame block cases.
+          showPages: diag.kind === "policy-blocked" || diag.kind === "host-frame-blocked"
+        });
+        toast(diag.title + "（详见页面步骤日志）", 4200);
+      }
+
+      /* 识别失败：摄像头预览保持运行，只报告识别这一步 */
+      function recogFail(stepIdx, err, phase) {
+        recogRunning = false;
+        recogFailed = true;
+        var diag = diagnoseCamError(err, phase);
+        var detail = (err && err.name ? err.name + "：" : "") + ((err && err.message) || err || diag.title);
+        setStep(stepIdx, "fail", "失败在步骤" + (stepIdx + 1) + "（" + STEP_NAMES[stepIdx] + "）：" + detail);
+        camStatus.textContent = "摄像头已开 · 识别库加载失败";
+        showCamHelp("摄像头已打开，识别库加载失败",
+          diag.detail + " 具体错误：" + detail,
+          { showLink: false, showRetry: true });
+        toast("摄像头已打开，识别库加载失败：" + detail, 5200);
+      }
+
+      /* 识别链：与摄像头完全解耦，失败不影响预览 */
+      function startRecognition() {
+        if (recogRunning) return;
+        if (handsObj) { // 已初始化过，直接恢复送帧
+          recogRunning = true;
+          recogFailed = false;
+          setStep(3, "ok", "识别库已加载");
+          setStep(4, "ok", "识别已就绪");
+          camStatus.textContent = "当前手势：无";
+          camLoop();
+          return;
+        }
+        recogRunning = true;
+        recogFailed = false;
+        sendFailCount = 0;
+        setStep(3, "run", "正在加载识别库脚本 + 模型文件（jsDelivr / unpkg 自动切换）…");
+        loadHandsWithFallback().then(function (base) {
+          if (!camOn) { recogRunning = false; return; }
+          setStep(3, "ok", "识别库已加载，来源：" + base);
+          setStep(4, "run", "正在初始化模型 / WASM…");
+          try {
+            handsObj = new window.Hands({
+              locateFile: function (f) { return (handsBase || base) + "/" + f; }
+            });
+            handsObj.setOptions({
+              maxNumHands: 1,
+              modelComplexity: 0,
+              minDetectionConfidence: 0.7,
+              minTrackingConfidence: 0.5
+            });
+            handsObj.onResults(onHandResults);
+          } catch (initErr) {
+            recogFail(4, initErr, "hands-init");
+            return;
+          }
+          var initP = (typeof handsObj.initialize === "function")
+            ? handsObj.initialize() : Promise.resolve();
+          withTimeout(initP, 30000, "Hands.initialize (WASM/模型)").then(function () {
+            if (!camOn) { recogRunning = false; return; }
+            setStep(4, "ok", "识别已就绪，把手放到镜头前试试");
+            camStatus.textContent = "当前手势：无";
+            toast("手势识别已就绪：张手散开 · 握拳成树 · 捏合看照片");
+            camLoop();
+          }).catch(function (e) { recogFail(4, e, "hands-init"); });
+        }).catch(function (e) { recogFail(3, e, "hands-load"); });
+      }
+
+      // One getUserMedia attempt; converts synchronous throws (old Safari / WebViews)
+      // into rejections so a single .catch path handles both.
+      function gumAttempt(constraints) {
+        try {
+          return Promise.resolve(navigator.mediaDevices.getUserMedia(constraints));
+        } catch (syncErr) {
+          return Promise.reject(syncErr);
+        }
+      }
+      function startCamera() {
+        if (camOn || camStarting) return;
+        // 步骤0：同步执行，证明点击处理真的跑了（按钮文字立刻变）
+        resetSteps();
+        setStep(0, "ok", "已收到点击，开始启动");
+        hideCamHelp();
+        btnCam.textContent = "正在请求摄像头…";
+        var envLine = envDiagnostic();
+        console.log("[gesture] " + envLine);
+        // 接口根本不存在：非 HTTPS / 过旧浏览器 / WebView 禁用（只报实际值，不臆断原因）
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          var noApiErr = new Error("navigator.mediaDevices.getUserMedia unavailable");
+          noApiErr.name = "NotSupportedError";
+          setStep(1, "fail", "失败在步骤2（请求摄像头）：原始错误 " + rawErrorText(noApiErr) + " | " + envLine);
+          failCamera(diagnoseCamError(noApiErr, "no-api"), noApiErr);
+          return;
+        }
+        camStarting = true;
+        btnCam.disabled = true;
+        // Prompt tracking starts now (synchronously, before the request):
+        // stamp the call time and snapshot the camera permission state.
+        // Fire-and-forget: never delays the getUserMedia call itself.
+        gumStartedAt = performance.now();
+        gumPermBefore = "unknown"; gumPermAfter = "unknown";
+        if (navigator.permissions && navigator.permissions.query) {
+          try {
+            navigator.permissions.query({ name: "camera" }).then(function (st) {
+              if (gumPermBefore === "unknown") gumPermBefore = st.state;
+            }).catch(function () {});
+          } catch (e) {}
+        }
+        setStep(1, "run", envLine + " · 正在请求摄像头（最简参数，等待浏览器授权）…");
+        // 关键：getUserMedia 是启动链里的第一个异步调用，紧贴点击手势，
+        // 在它完成、预览显示之前，不加载任何识别库脚本。
+        // 兼容性优先：第一次只用 {video:true, audio:false}，不带 facingMode/宽高，
+        // 避免 Safari / 部分 Edge 因约束不满足直接 OverconstrainedError。
+        var gumPromise = gumAttempt({ video: true, audio: false }).catch(function (firstErr) {
+          var n = (firstErr && firstErr.name) || "";
+          if (n === "OverconstrainedError" || n === "NotFoundError" || n === "DevicesNotFoundError") {
+            console.warn("[gesture] step2 first attempt failed, retrying {video:true}: " + rawErrorText(firstErr));
+            setStep(1, "run", envLine + " · 首次请求失败（原始错误 " + rawErrorText(firstErr) + "），正在用 {video:true} 重试…");
+            return gumAttempt({ video: true });
+          }
+          throw firstErr;
+        });
+        // 超时后若流才到，直接关掉避免摄像头灯常亮
+        gumPromise.then(function (s) {
+          if (!camOn && !camStarting && s) s.getTracks().forEach(function (t) { t.stop(); });
+        }, function () {});
+        withTimeout(gumPromise, 20000, "getUserMedia").then(function (stream) {
+          mediaStream = stream;
+          setStep(1, "ok", "已拿到摄像头画面流");
+          setStep(2, "run", "正在启动预览播放…");
+          camVideo.srcObject = stream;
+          var playP;
+          try { playP = camVideo.play(); } catch (e) { playP = null; }
+          return Promise.resolve(playP).catch(function (e) {
+            console.warn("[gesture] video.play() rejected, preview element still bound:", e);
+          });
+        }).then(function () {
+          if (!mediaStream) return;
+          // 预览先行：到这里摄像头就算完全打开，识别库之后再异步加载
+          camOn = true;
+          camStarting = false;
+          btnCam.disabled = false;
+          btnCam.textContent = "关闭摄像头";
+          camWrap.classList.add("on");
+          camWrap.setAttribute("aria-hidden", "false");
+          camStatus.textContent = "摄像头已开 · 正在加载手势识别…";
+          setStep(2, "ok", "预览已显示（右下角小窗）");
+          gCandidate = "none"; gCommitted = "none";
+          toast("摄像头已打开，正在加载手势识别…");
+          startRecognition();
+        }).catch(function (err) {
+          failCamera(diagnoseCamError(err, "camera"), err);
+        });
+      }
+
+      function stopCamera() {
+        camOn = false;
+        camStarting = false;
+        recogRunning = false;
+        sendBusy = false;
+        btnCam.disabled = false;
+        cancelAnimationFrame(camRAF);
+        resetSteps();
+        camStepsEl.classList.remove("on");
+        if (mediaStream) {
+          mediaStream.getTracks().forEach(function (t) { t.stop(); });
+          mediaStream = null;
+        }
+        camVideo.srcObject = null;
+        camWrap.classList.remove("on");
+        camWrap.setAttribute("aria-hidden", "true");
+        btnCam.textContent = "开启摄像头手势";
+        handPresent = false;
+        handYawTarget = 0;
+        handPitchTarget = 0;
+        gCommitted = "none";
+      }
+      btnCam.addEventListener("click", function () {
+        if (camOn) stopCamera();
+        else startCamera();
+      });
+
+      initDefaultPhotos();
+
+      /* ============================================================
+         渲染
+         ============================================================ */
+      function drawPoints(up, mv, opts) {
+        gl.useProgram(ptProg.pr);
+        var U = ptProg.U;
+        gl.uniformMatrix4fv(U.uProj, false, view.proj);
+        gl.uniformMatrix4fv(U.uMV, false, mv);
+        gl.uniform1f(U.uTime, opts.time);
+        gl.uniform1f(U.uForm, opts.form);
+        gl.uniform1f(U.uScatter, opts.scatter == null ? scatterCur : opts.scatter);
+        gl.uniform1f(U.uScale, view.scaleF);
+        gl.uniform1f(U.uSizeMul, opts.sizeMul || 1);
+        gl.uniform1f(U.uBrightMul, opts.bright || 1);
+        gl.uniform1f(U.uSway, opts.sway || 0);
+        gl.uniform1f(U.uTwinkle, opts.twinkle || 0);
+        gl.uniform1f(U.uPulse, opts.pulse || 1);
+        gl.uniform1f(U.uAlpha, opts.alpha == null ? 1 : opts.alpha);
+        bindSystem(ptProg, up);
+        gl.drawArrays(gl.POINTS, 0, up.n);
+        unbindSystem();
+      }
+
+      var lastT = performance.now();
+      function frame(now) {
+        requestAnimationFrame(frame);
+        var dt = Math.min(0.05, (now - lastT) / 1000);
+        lastT = now;
+        var time = now / 1000;
+        var form = clamp((now - formStart) / FORM_MS, 0, 1);
+        // 形态插值（约 1 秒平滑过渡）
+        scatterCur += (scatterTarget - scatterCur) * (1 - Math.exp(-dt * 2.6));
+        if (Math.abs(scatterTarget - scatterCur) < 0.001) scatterCur = scatterTarget;
+        // 手部跟随平滑
+        var follow = 1 - Math.exp(-dt * 4);
+        yawHand += (handYawTarget - yawHand) * follow;
+        pitchHand += (handPitchTarget - pitchHand) * follow;
+
+        if (autoRotate && pointers.size === 0) yaw += dt * 0.10;
+        var yawEff = yaw + yawHand;
+
+        var camDist = view.baseDist * zoomF;
+        var el = elevation + pitchDrag + pitchHand;
+        var eye = [0, view.targetY + camDist * Math.sin(el), camDist * Math.cos(el)];
+        var viewM = mLookAt(eye, [0, view.targetY, 0], [0, 1, 0]);
+        var modelM = mModel(view.offX, yawEff, 0);
+        var mvTree = mMul(viewM, modelM);
+        var mvHeart = mMul(viewM, mModel(view.offX, 0, 0));
+        // 爱心脉动：整体亮度 + 尺寸随正弦呼吸；散开后随粒子云飘散
+        var heartPulse = 1 + 0.13 * (0.5 + 0.5 * Math.sin(time * 2.3)) - 0.065;
+        var mvHeartEff = scatterCur > 0.01 ? mvTree : mvHeart;
+
+        gl.disable(gl.DEPTH_TEST);
+        gl.disable(gl.BLEND);
+
+        /* 背景 */
+        gl.useProgram(bgProg.pr);
+        gl.uniform1f(bgProg.U.uTime, time);
+        gl.uniform2f(bgProg.U.uHalo, view.halo[0], view.halo[1]);
+        gl.bindBuffer(gl.ARRAY_BUFFER, bgBuf);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.disableVertexAttribArray(0);
+
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.ONE, gl.ONE);
+
+        /* 背景星 */
+        drawPoints(stars, viewM, { time: time, form: 1, scatter: 0, twinkle: 0.45, bright: 0.9 });
+
+        /* 地面雪盘 + 3 圈光环（散开时变淡，光环单独高亮两遍） */
+        drawPoints(ground, mvTree, { time: time, form: form, sizeMul: 1.25, twinkle: 0.18, bright: 0.9, alpha: 1 - 0.7 * scatterCur });
+        drawPoints(rings, mvTree, { time: time, form: form, sizeMul: 3.0, bright: 0.22, twinkle: 0.1, alpha: 1 - 0.85 * scatterCur });
+        drawPoints(rings, mvTree, { time: time, form: form, sizeMul: 1.35, bright: 1.15, twinkle: 0.1, alpha: 1 - 0.85 * scatterCur });
+
+        /* 树干 */
+        drawPoints(trunk, mvTree, { time: time, form: form, twinkle: 0.1, bright: 0.9 });
+
+        /* 树叶：大光晕 + 亮芯两遍（亮度压低，避免叠加过曝发白） */
+        drawPoints(leaves, mvTree, { time: time, form: form, sizeMul: 2.0, bright: 0.07, sway: 0.008, twinkle: 0.25 });
+        drawPoints(leaves, mvTree, { time: time, form: form, sizeMul: 1.0, bright: 0.52, sway: 0.008, twinkle: 0.3 });
+
+        /* 浮尘 */
+        drawPoints(dust, mvTree, { time: time, form: 1, scatter: 0, sway: 0.05, twinkle: 0.4, bright: 0.55, alpha: 0.8 });
+
+        /* 爱心树顶：光晕 + 本体 */
+        drawPoints(heart, mvHeartEff, { time: time, form: form, sizeMul: 3.2, bright: 0.11, pulse: heartPulse, twinkle: 0.12 });
+        drawPoints(heart, mvHeartEff, { time: time, form: form, sizeMul: 1.0, bright: 0.62, pulse: heartPulse, twinkle: 0.12 });
+
+        /* 星芒 */
+        gl.useProgram(spProg.pr);
+        var SU = spProg.U;
+        gl.uniformMatrix4fv(SU.uProj, false, view.proj);
+        gl.uniformMatrix4fv(SU.uMV, false, mvTree);
+        gl.uniform1f(SU.uTime, time);
+        gl.uniform1f(SU.uForm, form);
+        gl.uniform1f(SU.uScatter, scatterCur);
+        gl.uniform1f(SU.uScale, view.scaleF);
+        bindSystem(spProg, sparkles);
+        gl.drawArrays(gl.POINTS, 0, sparkles.n);
+        unbindSystem();
+
+        /* 照片贴片（普通混合，内部切回加色混合给飘雪） */
+        drawPhotos(viewM, eye, yawEff, time);
+
+        /* 飘雪 */
+        gl.useProgram(snowProg.pr);
+        var NU = snowProg.U;
+        gl.uniformMatrix4fv(NU.uProj, false, view.proj);
+        gl.uniformMatrix4fv(NU.uMV, false, viewM);
+        gl.uniform1f(NU.uTime, time);
+        gl.uniform1f(NU.uScale, view.scaleF);
+        gl.bindBuffer(gl.ARRAY_BUFFER, snowBufs[0]);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, snowBufs[1]);
+        gl.enableVertexAttribArray(1);
+        gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 0, 0);
+        gl.drawArrays(gl.POINTS, 0, snowData.n);
+        gl.disableVertexAttribArray(0);
+        gl.disableVertexAttribArray(1);
+      }
+      requestAnimationFrame(frame);
+    </script>
+  </body>
+</html>
