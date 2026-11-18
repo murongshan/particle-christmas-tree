@@ -1256,7 +1256,10 @@
         }
       }
 
-      function setPhotos(list) {
+      var photosSource = "default"; // "default" | "builtin" | "user"
+      var builtinLoadStarted = false;
+
+      function setPhotos(list, source) {
         for (var i = 0; i < photos.length; i++) gl.deleteTexture(photos[i].tex);
         photos = list.map(function (item) {
           return {
@@ -1267,14 +1270,89 @@
             angle: 0, delay: 0, tilt: 0, scale: 1, _vis: false, _sx: 0, _sy: 0
           };
         });
+        if (source) photosSource = source;
         layoutPhotos();
-        if (focusIndex >= photos.length) closeFocus();
+        if (typeof focusIndex !== "undefined" && focusIndex >= photos.length) closeFocus();
       }
 
       function initDefaultPhotos() {
         var list = [];
         for (var i = 0; i < 6; i++) list.push(defaultCard(i));
-        setPhotos(list);
+        setPhotos(list, "default");
+      }
+
+      /* ----- 内置照片：可选同目录文件 photos-data.js -----
+         定义 window.BUILTIN_PHOTOS = [dataURI, ...]
+         异步加载，不阻塞首帧；缺失/失败/超时静默回退到节日卡。
+         若用户已上传照片，则不覆盖用户照片。 */
+      function applyBuiltinPhotos(dataUris) {
+        if (photosSource === "user") return;
+        if (!dataUris || !dataUris.length) return;
+        var capped = dataUris.slice(0, MAX_PHOTOS);
+        var loaded = new Array(capped.length);
+        var done = 0;
+        function checkDone() {
+          if (++done !== capped.length) return;
+          var list = [];
+          for (var j = 0; j < loaded.length; j++) if (loaded[j]) list.push(loaded[j]);
+          if (!list.length) return;
+          if (photosSource === "user") return;
+          setPhotos(list, "builtin");
+        }
+        capped.forEach(function (uri, idx) {
+          if (typeof uri !== "string" || uri.indexOf("data:") !== 0) { checkDone(); return; }
+          var img = new Image();
+          img.onload = function () {
+            try {
+              var cv = polaroidCanvas(function (ctx, x, y, w, h) {
+                var s = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+                var dw = img.naturalWidth * s, dh = img.naturalHeight * s;
+                ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+              }, "Merry Christmas");
+              loaded[idx] = { canvas: cv, src: uri, cap: "Merry Christmas" };
+            } catch (e) { /* skip this photo */ }
+            checkDone();
+          };
+          img.onerror = function () { checkDone(); };
+          img.src = uri;
+        });
+      }
+
+      function loadBuiltinPhotos() {
+        if (builtinLoadStarted) return;
+        builtinLoadStarted = true;
+        // Already defined (e.g. inlined) — use directly
+        if (window.BUILTIN_PHOTOS && window.BUILTIN_PHOTOS.length) {
+          applyBuiltinPhotos(window.BUILTIN_PHOTOS);
+          return;
+        }
+        var settled = false;
+        var script = document.createElement("script");
+        script.src = "photos-data.js";
+        script.async = true;
+        var timer = setTimeout(function () {
+          if (settled) return;
+          settled = true;
+          // Timeout: silent fallback to festival cards
+          try { if (script.parentNode) script.parentNode.removeChild(script); } catch (e) {}
+        }, 8000);
+        script.onload = function () {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          try {
+            if (window.BUILTIN_PHOTOS && Object.prototype.toString.call(window.BUILTIN_PHOTOS) === "[object Array]" && window.BUILTIN_PHOTOS.length) {
+              applyBuiltinPhotos(window.BUILTIN_PHOTOS);
+            }
+          } catch (e) { /* silent fallback */ }
+        };
+        script.onerror = function () {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          // Missing file (e.g. Muse-hosted version): silent fallback
+        };
+        document.head.appendChild(script);
       }
 
       /* ----- 上传照片：只在本机读取 ----- */
@@ -1308,7 +1386,7 @@
       }
       function finishUpload(loaded, capped) {
         if (!loaded.length) { toast("照片读取失败，换几张试试"); return; }
-        setPhotos(loaded);
+        setPhotos(loaded, "user");
         toast(capped
           ? "树上最多挂 " + MAX_PHOTOS + " 张，已挂前 " + loaded.length + " 张"
           : "已把 " + loaded.length + " 张照片挂到树上，点任意一张可放大");
@@ -2131,6 +2209,10 @@
       });
 
       initDefaultPhotos();
+      // Async, non-blocking: try to replace festival cards with built-in
+      // photos from sibling photos-data.js if present (GitHub Pages copy).
+      // Missing / failed / timeout falls back silently to festival cards.
+      loadBuiltinPhotos();
 
       /* ============================================================
          渲染
