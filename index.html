@@ -52,103 +52,28 @@
           0 0 42px rgba(255, 120, 200, 0.5),
           0 0 90px rgba(190, 90, 255, 0.35);
       }
-      .greeting p {
-        margin: 16px 0 0 4px;
-        font-size: clamp(14px, 1.5vw, 19px);
-        letter-spacing: 0.06em;
-        color: rgba(253, 238, 248, 0.96);
-        text-shadow:
-          0 0 10px rgba(255, 180, 220, 0.85),
-          0 0 30px rgba(230, 110, 200, 0.5);
-      }
-
-      .bar {
+      /* 摄像头未授权时的唯一提示：一行低调小字，无按钮、无面板 */
+      #camNote {
         position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        left: 50%;
+        bottom: calc(10px + env(safe-area-inset-bottom));
+        transform: translateX(-50%);
         z-index: 6;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
-        pointer-events: none;
-      }
-      .gesturerow {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-      .gpill {
-        padding: 6px 14px;
-        border-radius: 999px;
-        border: 1px solid rgba(255, 170, 220, 0.28);
-        background: rgba(30, 8, 48, 0.5);
-        color: rgba(252, 238, 250, 0.92);
-        font-size: 12.5px;
-        letter-spacing: 0.04em;
-        white-space: nowrap;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-      }
-      .privacy {
+        display: none;
         font-size: 11.5px;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.05em;
         color: rgba(243, 205, 240, 0.55);
         text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
         white-space: nowrap;
+        pointer-events: none;
       }
-      .brow {
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 12px;
-      }
-      .hint {
-        font-size: 12.5px;
-        letter-spacing: 0.08em;
-        color: rgba(243, 205, 240, 0.62);
-        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
-        padding-bottom: 10px;
-        white-space: nowrap;
-      }
-      .controls {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-        gap: 8px;
-        pointer-events: auto;
-      }
-      .controls button {
-        min-height: 44px;
-        padding: 10px 16px;
-        border-radius: 999px;
-        border: 1px solid rgba(255, 170, 220, 0.32);
-        background: rgba(30, 8, 48, 0.55);
-        color: #fceef8;
-        font-size: 13.5px;
-        letter-spacing: 0.06em;
-        cursor: pointer;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        transition: background 0.2s ease, border-color 0.2s ease;
-      }
-      .controls button:hover { background: rgba(64, 20, 92, 0.65); border-color: rgba(255, 200, 235, 0.55); }
-      .controls button:active { transform: scale(0.97); }
-      .controls button.active {
-        background: rgba(110, 30, 95, 0.72);
-        border-color: rgba(255, 170, 220, 0.8);
-        color: #ffe3f4;
-      }
-      .controls button:disabled { opacity: 0.55; cursor: wait; }
+      #camNote.on { display: block; }
 
-      /* 摄像头预览小窗 */
+      /* 摄像头预览小窗（自动启动后显示在右下角） */
       #camWrap {
         position: fixed;
         right: 16px;
-        bottom: 138px;
+        bottom: calc(16px + env(safe-area-inset-bottom));
         width: 178px;
         z-index: 8;
         display: none;
@@ -231,21 +156,6 @@
         font-size: 13px;
         letter-spacing: 0.14em;
       }
-      #btnFocusClose {
-        position: absolute;
-        top: -17px;
-        right: -17px;
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        border: 2px solid #f0a8cf;
-        background: #2a0a38;
-        color: #ffd7ef;
-        font-size: 17px;
-        line-height: 1;
-        cursor: pointer;
-        z-index: 2;
-      }
       @keyframes focusIn {
         from { transform: scale(0.5); opacity: 0; }
         to { transform: scale(1); opacity: 1; }
@@ -270,106 +180,6 @@
       }
       #toast.on { display: block; }
 
-      /* 手势启动分步诊断行 */
-      #camSteps {
-        display: none;
-        text-align: center;
-        font-size: 12px;
-        letter-spacing: 0.03em;
-        color: rgba(243, 205, 240, 0.75);
-        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
-        pointer-events: auto;
-        word-break: break-word;
-      }
-      #camSteps.on { display: block; }
-      #camSteps .st-ok { color: #8fe6a8; }
-      #camSteps .st-run { color: #ffd76a; }
-      #camSteps .st-fail { color: #ff9d9d; }
-      #camSteps .st-detail { display: block; margin-top: 2px; color: rgba(255, 157, 157, 0.9); font-size: 11.5px; }
-
-      /* 内置照片加载诊断行（与上方手势步骤行同处一个日志区，样式保持低调） */
-      #photoDiag {
-        display: none;
-        text-align: center;
-        font-size: 12px;
-        letter-spacing: 0.03em;
-        color: rgba(243, 205, 240, 0.75);
-        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
-        word-break: break-word;
-      }
-      #photoDiag.ok { color: #8fe6a8; }
-
-      /* 摄像头受限 / 失败说明面板 */
-      #camHelp {
-        position: fixed;
-        left: 50%;
-        bottom: 118px;
-        transform: translateX(-50%);
-        z-index: 26;
-        display: none;
-        width: min(92vw, 520px);
-        padding: 16px 18px 14px;
-        border-radius: 14px;
-        border: 1px solid rgba(255, 170, 220, 0.55);
-        background: rgba(24, 4, 36, 0.96);
-        color: #fdf0fa;
-        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
-        font-size: 13.5px;
-        line-height: 1.65;
-        letter-spacing: 0.02em;
-      }
-      #camHelp.on { display: block; }
-      #camHelp .chTitle { font-size: 15px; font-weight: 700; color: #ffd7ef; margin-bottom: 4px; }
-      #camHelp .chReason { color: rgba(252, 238, 248, 0.88); word-break: break-word; white-space: pre-wrap; }
-      #camHelp .chUrl {
-        display: block;
-        margin: 10px 0 8px;
-        padding: 8px 10px;
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.07);
-        border: 1px solid rgba(255, 170, 220, 0.22);
-        color: #f3c6ff;
-        font-size: 12px;
-        word-break: break-all;
-        text-decoration: none;
-      }
-      #camHelp .chRow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
-      #camHelp .chRow button, #camHelp .chRow a.chOpen {
-        min-height: 38px;
-        padding: 8px 14px;
-        border-radius: 999px;
-        border: 1px solid rgba(255, 170, 220, 0.35);
-        background: rgba(64, 20, 92, 0.7);
-        color: #fceef8;
-        font-size: 13px;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-      }
-      #camHelp .chRow button.primary {
-        background: rgba(110, 30, 95, 0.85);
-        border-color: rgba(255, 170, 220, 0.8);
-        color: #ffe3f4;
-      }
-
-      #dropHint {
-        position: fixed;
-        inset: 14px;
-        z-index: 15;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        border: 2px dashed rgba(255, 170, 220, 0.8);
-        border-radius: 18px;
-        background: rgba(20, 3, 32, 0.55);
-        color: #ffd7ef;
-        font-size: 17px;
-        letter-spacing: 0.1em;
-        pointer-events: none;
-      }
-      #dropHint.on { display: flex; }
-
       .fallback {
         position: fixed;
         inset: 0;
@@ -391,14 +201,7 @@
           top: calc(20px + env(safe-area-inset-top));
         }
         .greeting h1 { font-size: clamp(30px, 9vw, 42px); }
-        .greeting p { margin-top: 10px; font-size: 14px; }
-        .brow { flex-direction: column; align-items: center; gap: 2px; }
-        .hint { padding-bottom: 4px; order: 2; }
-        .controls { order: 1; justify-content: center; }
-        .controls button { padding: 9px 13px; font-size: 13px; }
-        #camWrap { width: 128px; bottom: 218px; right: 12px; }
-        #camHelp { bottom: 190px; }
-        .gpill { font-size: 11.5px; padding: 5px 11px; }
+        #camWrap { width: 128px; right: 12px; }
       }
       @media (prefers-reduced-motion: reduce) {
         .focusCard { animation: none; }
@@ -410,8 +213,9 @@
 
     <div class="greeting">
       <h1>Merry Christmas</h1>
-      <p>To：全世界最美的烨宝</p>
     </div>
+
+    <div id="camNote">摄像头未授权，仅可观看</div>
 
     <div id="camWrap" aria-hidden="true">
       <div class="mirror">
@@ -421,53 +225,14 @@
       <div id="camStatus">当前手势：无</div>
     </div>
 
-    <div class="bar">
-      <div class="gesturerow">
-        <span class="gpill">🖐 张手散开 · ✊ 握拳成树 · 🤏 捏合看照片 · 👋 移动手旋转</span>
-        <span class="privacy">摄像头画面只在本机识别，不会上传</span>
-      </div>
-      <div id="camSteps" aria-live="polite"></div>
-      <div id="photoDiag" aria-live="polite"></div>
-      <div class="brow">
-        <div class="hint">拖动旋转 · 滚动 / 双指缩放 · 点照片放大</div>
-        <div class="controls">
-          <button id="btnCam" type="button">开启摄像头手势</button>
-          <button id="btnUpload" type="button">上传照片</button>
-          <button id="btnScatter" type="button">散开</button>
-          <button id="btnAssemble" type="button" class="active">聚成树</button>
-          <button id="btnFocus" type="button">放大照片</button>
-          <button id="btnReplay" type="button">↻ 重播形成动画</button>
-          <button id="btnRotate" type="button">暂停旋转</button>
-        </div>
-      </div>
-    </div>
-
-    <input type="file" id="fileInput" accept="image/*" multiple hidden />
-
     <div id="focusOverlay">
       <div class="focusCard">
-        <button id="btnFocusClose" type="button" aria-label="关闭">✕</button>
         <img id="focusImg" alt="放大的照片" />
         <div class="focusCap" id="focusCap">Merry Christmas</div>
       </div>
     </div>
 
     <div id="toast"></div>
-
-    <div id="camHelp" role="alert">
-      <div class="chTitle" id="camHelpTitle">摄像头没能启动</div>
-      <div class="chReason" id="camHelpReason">摄像头启动失败，具体原因和原始错误会显示在这里。</div>
-      <a class="chUrl" id="camHelpUrl" href="https://muse.ai/s/li-zi-sheng-dan-shu-fxn6xji4tkhxlf/oH1de6Pv9azB3-YSzBJzGqs3Dv8l1WUaS1VXifmGt6M" target="_blank" rel="noopener">https://muse.ai/s/li-zi-sheng-dan-shu-fxn6xji4tkhxlf/oH1de6Pv9azB3-YSzBJzGqs3Dv8l1WUaS1VXifmGt6M</a>
-      <a class="chUrl" id="camHelpPagesUrl" href="https://murongshan.github.io/particle-christmas-tree/" target="_blank" rel="noopener" style="display:none">GitHub Pages 副本（发布后可用，顶层直开、无框架拦截）：https://murongshan.github.io/particle-christmas-tree/</a>
-      <div class="chRow">
-        <button type="button" class="primary" id="btnTopOpen" style="display:none">在浏览器顶层打开</button>
-        <button type="button" class="primary" id="btnRetryRecog" style="display:none">重试手势识别</button>
-        <a class="chOpen" href="https://muse.ai/s/li-zi-sheng-dan-shu-fxn6xji4tkhxlf/oH1de6Pv9azB3-YSzBJzGqs3Dv8l1WUaS1VXifmGt6M" target="_blank" rel="noopener">在浏览器打开</a>
-        <button type="button" id="btnCamHelpClose">知道了，用按钮玩</button>
-      </div>
-    </div>
-
-    <div id="dropHint">松开鼠标，把照片挂到树上 🎄</div>
 
     <div class="fallback" id="fallback">
       <div>这台设备的浏览器没有开启 WebGL，<br />粒子圣诞树暂时没法发光 ✨<br />换个较新的浏览器打开试试。</div>
@@ -1815,17 +1580,11 @@
          不删脚本，晚到的加载结果由轮询兜底应用）。
          ?v=3 缓存戳用于绕开「文件部署之前浏览器缓存下来的 404」。
          文件缺失/失败时回退到节日卡；若用户已上传照片，则不覆盖。
-         加载结果会写一行低调诊断到日志区（#photoDiag）并打 console。 */
+         加载过程只打 console，不在页面上显示任何诊断 UI。 */
       var builtinSettled = false;
 
-      function photoDiag(msg, ok) {
+      function photoDiag(msg) {
         try { console.info("[builtin-photos] " + msg); } catch (e) {}
-        var el = document.getElementById("photoDiag");
-        if (el) {
-          el.textContent = msg;
-          el.className = ok ? "ok" : "";
-          el.style.display = "block";
-        }
       }
 
       function applyBuiltinPhotos(dataUris) {
@@ -1930,68 +1689,7 @@
         }, 2000);
       }
 
-      /* ----- 上传照片：只在本机读取 ----- */
-      function handleFiles(files) {
-        var imgs = [];
-        for (var i = 0; i < files.length; i++) {
-          if (files[i].type && files[i].type.indexOf("image/") === 0) imgs.push(files[i]);
-        }
-        if (!imgs.length) { toast("没有读到图片文件"); return; }
-        var capped = imgs.length > MAX_PHOTOS;
-        if (capped) imgs = imgs.slice(0, MAX_PHOTOS);
-        var loaded = [], done = 0;
-        imgs.forEach(function (file) {
-          var url = URL.createObjectURL(file);
-          var img = new Image();
-          img.onload = function () {
-            var cv = polaroidCanvas(function (ctx, x, y, w, h) {
-              var s = Math.max(w / img.naturalWidth, h / img.naturalHeight);
-              var dw = img.naturalWidth * s, dh = img.naturalHeight * s;
-              ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
-            }, "Merry Christmas");
-            loaded.push({ canvas: cv, src: url, cap: "Merry Christmas" });
-            if (++done === imgs.length) finishUpload(loaded, capped);
-          };
-          img.onerror = function () {
-            URL.revokeObjectURL(url);
-            if (++done === imgs.length) finishUpload(loaded, capped);
-          };
-          img.src = url;
-        });
-      }
-      function finishUpload(loaded, capped) {
-        if (!loaded.length) { toast("照片读取失败，换几张试试"); return; }
-        setPhotos(loaded, "user");
-        toast(capped
-          ? "树上最多挂 " + MAX_PHOTOS + " 张，已挂前 " + loaded.length + " 张"
-          : "已把 " + loaded.length + " 张照片挂到树上，点任意一张可放大");
-      }
-      var fileInput = document.getElementById("fileInput");
-      document.getElementById("btnUpload").addEventListener("click", function () { fileInput.click(); });
-      fileInput.addEventListener("change", function () {
-        handleFiles(fileInput.files);
-        fileInput.value = "";
-      });
-      var dropHint = document.getElementById("dropHint");
-      var dragDepth = 0;
-      window.addEventListener("dragenter", function (e) {
-        e.preventDefault();
-        dragDepth++;
-        dropHint.classList.add("on");
-      });
-      window.addEventListener("dragleave", function (e) {
-        dragDepth = Math.max(0, dragDepth - 1);
-        if (!dragDepth) dropHint.classList.remove("on");
-      });
-      window.addEventListener("dragover", function (e) { e.preventDefault(); });
-      window.addEventListener("drop", function (e) {
-        e.preventDefault();
-        dragDepth = 0;
-        dropHint.classList.remove("on");
-        if (e.dataTransfer && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
-      });
-
-      /* ----- 照片放大层 ----- */
+      /* ----- 照片放大层（点照片或捏合手势打开，点任意处关闭） ----- */
       var focusOverlay = document.getElementById("focusOverlay");
       var focusImg = document.getElementById("focusImg");
       var focusCap = document.getElementById("focusCap");
@@ -2026,14 +1724,7 @@
           openFocus((focusIndex + 1) % photos.length);
         }
       }
-      document.getElementById("btnFocus").addEventListener("click", cycleFocus);
-      document.getElementById("btnFocusClose").addEventListener("click", function (e) {
-        e.stopPropagation();
-        closeFocus();
-      });
-      focusOverlay.addEventListener("click", function (e) {
-        if (e.target === focusOverlay) closeFocus();
-      });
+      focusOverlay.addEventListener("click", function () { closeFocus(); });
 
       /* ----- 绘制照片贴片 ----- */
       function basisMatrix(right, up, nrm, pos, w, h) {
@@ -2168,25 +1859,15 @@
       window.addEventListener("resize", resize);
       resize();
 
-      /* ----- 形态切换（按钮与手势共用） ----- */
-      var btnScatter = document.getElementById("btnScatter");
-      var btnAssemble = document.getElementById("btnAssemble");
-      function refreshStateButtons() {
-        btnScatter.classList.toggle("active", scatterTarget === 1);
-        btnAssemble.classList.toggle("active", scatterTarget === 0);
-      }
+      /* ----- 形态切换（仅手势驱动：张手散开 / 握拳成树） ----- */
       function doScatter() {
         scatterTarget = 1;
         closeFocus();
-        refreshStateButtons();
       }
       function doAssemble() {
         scatterTarget = 0;
         closeFocus();
-        refreshStateButtons();
       }
-      btnScatter.addEventListener("click", doScatter);
-      btnAssemble.addEventListener("click", doAssemble);
 
       /* 拖动旋转 + 滚轮 / 双指缩放 + 点选照片 */
       var pointers = new Map();
@@ -2237,22 +1918,12 @@
         zoomF = clamp(zoomF * (e.deltaY > 0 ? 1.09 : 0.92), 0.55, 1.7);
       }, { passive: false });
 
-      var btnRotate = document.getElementById("btnRotate");
-      btnRotate.textContent = autoRotate ? "暂停旋转" : "继续旋转";
-      btnRotate.addEventListener("click", function () {
-        autoRotate = !autoRotate;
-        btnRotate.textContent = autoRotate ? "暂停旋转" : "继续旋转";
-      });
-      document.getElementById("btnReplay").addEventListener("click", function () {
-        formStart = performance.now();
-        doAssemble();
-      });
-
       /* ============================================================
-         手势识别：MediaPipe Hands（按需从 CDN 加载，全程本地运行）
-         摄像头画面只在本机处理，绝不上传
+         手势识别：MediaPipe Hands（页面加载即自动启动摄像头，
+         再从 CDN 懒加载识别库，全程本地运行）
+         摄像头画面只在本机处理，绝不上传；启动失败静默进入仅观看模式
          ============================================================ */
-      var btnCam = document.getElementById("btnCam");
+      var camNote = document.getElementById("camNote");
       var camWrap = document.getElementById("camWrap");
       var camVideo = document.getElementById("camVideo");
       var camCanvas = document.getElementById("camCanvas");
@@ -2272,117 +1943,12 @@
       var GESTURE_LABEL = { open: "张手", fist: "握拳", pinch: "捏合", none: "无" };
       var gCandidate = "none", gCandidateSince = 0, gCommitted = "none";
 
-      var PUBLIC_URL = "https://muse.ai/s/li-zi-sheng-dan-shu-fxn6xji4tkhxlf/oH1de6Pv9azB3-YSzBJzGqs3Dv8l1WUaS1VXifmGt6M";
-      // GitHub Pages copy: top-level hosting with no share-wrapper iframe.
-      // Placeholder until published; will be live at this URL once published.
-      var GITHUB_PAGES_URL = "https://murongshan.github.io/particle-christmas-tree/";
-      // Prompt tracking for step 2: when getUserMedia was called, how long it
-      // took to reject, and what the Permissions API said before/after. A
-      // NotAllowedError that returns in well under 2s cannot have shown a
-      // prompt the user could read and dismiss.
-      var gumStartedAt = 0, gumPermBefore = "unknown", gumPermAfter = "unknown";
       var handsBase = null;
       var HANDS_CDNS = [
         "https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240",
         "https://unpkg.com/@mediapipe/hands@0.4.1675469240"
       ];
 
-      function isEmbedded() {
-        try { return window.self !== window.top; } catch (e) { return true; }
-      }
-      function envDiagnostic() {
-        var hasMD = !!(navigator && navigator.mediaDevices);
-        var hasGUM = !!(hasMD && navigator.mediaDevices.getUserMedia);
-        return "步骤2 环境: secureContext=" + String(window.isSecureContext) +
-          ", mediaDevices=" + (hasMD ? "有" : "无") +
-          ", getUserMedia=" + (hasGUM ? "有" : "无") +
-          ", embedded=" + (isEmbedded() ? "是" : "否") +
-          ", protocol=" + (window.location ? window.location.protocol : "?") +
-          ", host=" + (window.location ? window.location.host : "?");
-      }
-      function rawErrorText(err) {
-        if (!err) return "(无错误对象)";
-        var n = err.name || "Error";
-        var m = err.message || String(err);
-        return n + ": " + m;
-      }
-      // Only a permissions-policy / feature-policy wording counts as a frame-policy block.
-      // window.self!==window.top alone, or a generic NotAllowedError, must NEVER be
-      // labelled as a Muse/embedded restriction.
-      function isPolicyBlockedError(err) {
-        var s = (((err && err.name) || "") + " " + ((err && err.message) || "")).toLowerCase();
-        return s.indexOf("permissions policy") !== -1 ||
-          s.indexOf("permission policy") !== -1 ||
-          s.indexOf("feature policy") !== -1 ||
-          s.indexOf("policy violation") !== -1 ||
-          (s.indexOf("not allowed") !== -1 && s.indexOf("document") !== -1) ||
-          s.indexOf("blocked by permissions") !== -1;
-      }
-
-      var camHelpEl = document.getElementById("camHelp");
-      var camHelpTitle = document.getElementById("camHelpTitle");
-      var camHelpReason = document.getElementById("camHelpReason");
-      function showCamHelp(title, reason, opts) {
-        opts = opts || {};
-        camHelpTitle.textContent = title;
-        camHelpReason.textContent = reason;
-        document.getElementById("camHelpUrl").style.display = opts.showLink === false ? "none" : "block";
-        var pagesEl = document.getElementById("camHelpPagesUrl");
-        if (pagesEl) pagesEl.style.display = opts.showPages ? "block" : "none";
-        document.querySelector("#camHelp .chOpen").style.display = opts.showLink === false ? "none" : "";
-        document.getElementById("btnRetryRecog").style.display = opts.showRetry ? "" : "none";
-        // Top-level escape: only meaningful when actually embedded; shown whenever
-        // embedded (regardless of error kind), never used as proof of a restriction.
-        var topBtn = document.getElementById("btnTopOpen");
-        if (topBtn) topBtn.style.display = isEmbedded() ? "" : "none";
-        camHelpEl.classList.add("on");
-      }
-      function hideCamHelp() { camHelpEl.classList.remove("on"); }
-      document.getElementById("btnRetryRecog").addEventListener("click", function () {
-        hideCamHelp();
-        if (camOn && !recogRunning) startRecognition();
-      });
-      var btnTopOpenEl = document.getElementById("btnTopOpen");
-      if (btnTopOpenEl) btnTopOpenEl.addEventListener("click", function () {
-        // Only escape from an iframe permissions policy: open the direct
-        // top-level copy (GitHub Pages, no share-wrapper iframe) in a new tab.
-        // Uses a fixed URL constant, never the page's own address.
-        var w = null;
-        try { w = window.open(GITHUB_PAGES_URL, "_blank"); } catch (e) { w = null; }
-        if (!w) {
-          toast("浏览器拦住了新窗口，请点面板里的 GitHub Pages 链接打开");
-        }
-      });
-
-      /* ----- 分步诊断（页面可见 + 控制台同步） ----- */
-      var camStepsEl = document.getElementById("camSteps");
-      var STEP_NAMES = ["点击已收到", "请求摄像头", "预览播放", "加载识别库", "识别就绪"];
-      var stepState = ["idle", "idle", "idle", "idle", "idle"]; // idle|run|ok|fail
-      var stepDetail = "";
-      function renderSteps() {
-        var parts = [];
-        for (var i = 0; i < STEP_NAMES.length; i++) {
-          var mark = stepState[i] === "ok" ? " ✓" : stepState[i] === "run" ? " …" : stepState[i] === "fail" ? " ✗" : "";
-          var cls = stepState[i] === "ok" ? "st-ok" : stepState[i] === "run" ? "st-run" : stepState[i] === "fail" ? "st-fail" : "";
-          parts.push('<span class="' + cls + '">步骤' + (i + 1) + " " + STEP_NAMES[i] + mark + "</span>");
-        }
-        var html = parts.join(" · ");
-        if (stepDetail) html += '<span class="st-detail">' + stepDetail + "</span>";
-        camStepsEl.innerHTML = html;
-        camStepsEl.classList.add("on");
-      }
-      function setStep(idx, state, detail) {
-        stepState[idx] = state;
-        if (detail != null) stepDetail = detail;
-        if (state === "fail") console.warn("[gesture] step " + (idx + 1) + " (" + STEP_NAMES[idx] + ") FAILED: " + (detail || ""));
-        else console.log("[gesture] step " + (idx + 1) + " (" + STEP_NAMES[idx] + ") -> " + state);
-        renderSteps();
-      }
-      function resetSteps() {
-        stepState = ["idle", "idle", "idle", "idle", "idle"];
-        stepDetail = "";
-        renderSteps();
-      }
       function withTimeout(promise, ms, label) {
         return Promise.race([
           Promise.resolve(promise),
@@ -2394,69 +1960,6 @@
             }, ms);
           })
         ]);
-      }
-      document.getElementById("btnCamHelpClose").addEventListener("click", hideCamHelp);
-
-      // 把失败拆开：返回 {kind, title, detail}
-      // 规则：只有错误原文明确提到 permissions/feature policy 才判定为框架策略拦截；
-      // 仅仅 embedded（self!==top）或一个笼统的 NotAllowedError 绝不贴「Muse 内受限」标签。
-      // 所有分支的 detail 都带上原始错误 name + message 原文，方便原样回报。
-      function diagnoseCamError(err, phase) {
-        var name = (err && err.name) || "";
-        var msg = (err && err.message) || String(err || "");
-        var raw = rawErrorText(err);
-        var env = envDiagnostic();
-        console.warn("[gesture] phase=" + phase + " name=" + name + " message=" + msg + " | " + env, err);
-        if (phase === "hands-load") {
-          return { kind: "hands-load", title: "手势识别库加载失败",
-            detail: "摄像头已经打开并在右下角预览，失败的是手势识别库（MediaPipe）：脚本或模型/WASM 文件没能从 CDN（jsDelivr / unpkg 都试过）加载下来，多半是当前网络拦截或 CDN 不可达。可以换个网络后点「重试手势识别」，或先用下面的按钮玩。\n原始错误: " + raw };
-        }
-        if (phase === "hands-init") {
-          return { kind: "hands-init", title: "手势识别初始化失败",
-            detail: "手势识别库已下载，但初始化（WASM 模型）失败。可以刷新页面重试，或换 Edge / Chrome 打开公开链接再试。\n原始错误: " + raw };
-        }
-        if (isPolicyBlockedError(err)) {
-          return { kind: "policy-blocked", title: "摄像头被嵌入框架的权限策略拦截",
-            detail: "浏览器明确报告权限策略拦截（见下方原始错误）：当前页面被嵌在没有下放 camera 权限的框架里（iframe 缺少 allow=\"camera\" / Permissions-Policy），框架层就会拦掉 getUserMedia，页面代码改不了这一层。请改用下方 GitHub Pages 副本（顶层直开、无框架包裹）打开，再授权摄像头。\n原始错误: " + raw + "\n" + env };
-        }
-        // Exact reported case: NotAllowedError + NO prompt ever shown + embedded.
-        // A real user dismissal takes time and leaves permission state "denied";
-        // an instant rejection while embedded, with the permission state never
-        // granted/denied by the user, means the hosting (share-wrapper) frame
-        // blocked getUserMedia before any prompt could appear. This is a
-        // host-frame block, NOT user denial, and must not use denial copy.
-        var gumElapsedMs = gumStartedAt ? Math.round(performance.now() - gumStartedAt) : -1;
-        var noPromptShown = gumElapsedMs >= 0 && gumElapsedMs < 2000 && gumPermBefore !== "denied";
-        if ((name === "NotAllowedError" || name === "PermissionDeniedError") && isEmbedded() && noPromptShown && phase === "camera") {
-          return { kind: "host-frame-blocked", title: "宿主框架在授权弹窗前就拦住了摄像头",
-            detail: "这不是你拒绝了授权：本次请求在 " + gumElapsedMs + "ms 内就被拒绝，全程没有出现过摄像头授权弹窗（权限状态 请求前=" + gumPermBefore + "）。结合页面处于嵌入状态（公开链接的分享外壳用 iframe 包裹本页、且没有下放 camera 权限），是宿主框架的 Permissions-Policy 在弹窗出现之前就拦掉了 getUserMedia，页面代码改不了这一层，也没法在这里把权限改成允许。\n解决办法：改用下方 GitHub Pages 副本打开——那是顶层直开、没有框架包裹的同一页，发布后地址为 " + GITHUB_PAGES_URL + " ，在那里点开启摄像头才会正常弹出授权。也可以点「在浏览器顶层打开」直接过去。\n原始错误: " + raw + "\n" + env + "\n步骤2 耗时: " + gumElapsedMs + "ms, 授权弹窗: 未出现" };
-        }
-        if (phase === "no-api") {
-          return { kind: "no-api", title: "当前环境没有摄像头接口",
-            detail: "浏览器没有提供 getUserMedia 接口，这不是权限拒绝。常见原因：页面不是安全上下文（非 HTTPS）、浏览器版本太旧，或当前 WebView 禁用了媒体设备接口。请看下方环境诊断的实际值判断。\n原始错误: " + raw + "\n" + env + (isEmbedded() ? "\n当前页面处于嵌入状态，可点「在浏览器顶层打开」换到顶层标签页再试（这只是备选动作，不代表已确认是嵌入导致的）。" : "") };
-        }
-        if (name === "NotFoundError" || name === "DevicesNotFoundError" || name === "OverconstrainedError") {
-          return { kind: "no-camera", title: "没有找到摄像头",
-            detail: "这台设备上没有检测到可用的摄像头（或摄像头正被其他应用占用）。关掉占用摄像头的应用后重试，或换一台带摄像头的设备。\n原始错误: " + raw + "\n" + env };
-        }
-        if (name === "NotReadableError" || name === "TrackStartError") {
-          return { kind: "busy", title: "摄像头被占用或无法读取",
-            detail: "摄像头可能正被其他应用占用，或系统暂时无法读取画面。关掉其他用到摄像头的应用后重试。\n原始错误: " + raw + "\n" + env };
-        }
-        if (name === "NotAllowedError" || name === "PermissionDeniedError" || name === "SecurityError") {
-          return { kind: "denied", title: "摄像头权限被拒绝",
-            detail: "浏览器返回了权限拒绝，但错误原文没有提到权限策略拦截，所以不能断定是嵌入框架拦截——更可能是本站点的摄像头权限被设为拒绝/未授权。请点地址栏左侧的锁/权限图标，把摄像头设为允许，然后刷新页面再点一次开启。\n原始错误: " + raw + "\n" + env + (isEmbedded() ? "\n补充：当前页面处于嵌入状态；若在站点权限里已允许仍失败，可点「在浏览器顶层打开」到顶层标签页再试。" : "") };
-        }
-        if (name === "AbortError") {
-          return { kind: "abort", title: "摄像头启动被中断",
-            detail: "摄像头启动过程被中断了，请再点一次开启摄像头手势重试。\n原始错误: " + raw + "\n" + env };
-        }
-        if (name === "TimeoutError") {
-          return { kind: "timeout", title: "请求摄像头超时",
-            detail: "getUserMedia 在 20 秒内没有返回，既没授权成功也没报错。可能是授权框被忽略、系统摄像头服务无响应，或框架层静默拦截（但没有策略错误原文，不能断定）。请确认没有未处理的授权提示后重试。\n原始错误: " + raw + "\n" + env + (isEmbedded() ? "\n当前页面处于嵌入状态，可点「在浏览器顶层打开」到顶层标签页验证。" : "") };
-        }
-        return { kind: "unknown", title: "摄像头没能启动",
-          detail: "启动失败，原因未归类，请把下方原始错误原样回报。\n原始错误: " + raw + "\n" + env + "\n阶段: " + phase };
       }
 
       function loadScript(src, timeoutMs) {
@@ -2543,7 +2046,6 @@
       }
 
       function onHandResults(results) {
-        if (stepState[4] !== "ok") setStep(4, "ok", "识别已就绪，正在实时识别手势");
         camCtx.clearRect(0, 0, camCanvas.width, camCanvas.height);
         var list = results.multiHandLandmarks;
         if (!list || !list.length) {
@@ -2594,9 +2096,7 @@
             sendFailCount++;
             console.warn("[gesture] hands.send failed (" + sendFailCount + "):", e);
             if (sendFailCount === 3) {
-              setStep(4, "fail", "失败在步骤5：识别运行出错 " + ((e && e.name) || "") + " " + ((e && e.message) || e || ""));
-              camStatus.textContent = "摄像头已开 · 识别运行出错，可点重试";
-              showCamHelp("摄像头已打开，识别运行出错", "画面预览不受影响；手势识别在送帧时失败。可以点「重试手势识别」再试一次。", { showLink: false, showRetry: true });
+              camStatus.textContent = "摄像头已开 · 识别暂不可用";
             }
           }).then(function () {
             sendBusy = false;
@@ -2604,37 +2104,24 @@
         }
       }
 
-      /* 只有摄像头本身失败才走这里（此时还没有画面流） */
-      function failCamera(diag, err) {
+      /* 摄像头启动失败：静默进入仅观看模式，只留底部一行小字提示 */
+      function failCamera(err) {
         camStarting = false;
-        btnCam.disabled = false;
-        btnCam.textContent = "开启摄像头手势";
+        console.warn("[gesture] camera unavailable, view-only mode:", err);
+        if (mediaStream) {
+          mediaStream.getTracks().forEach(function (t) { t.stop(); });
+          mediaStream = null;
+        }
         camVideo.srcObject = null;
-        var raw = err ? rawErrorText(err) : diag.title;
-        // Step log AND panel both carry the raw error name + message verbatim.
-        setStep(1, "fail", "失败在步骤2（请求摄像头）：原始错误 " + raw + " | " + envDiagnostic());
-        showCamHelp(diag.title, diag.detail, {
-          // Public link / top-level escape shown for policy blocks, missing API,
-          // unknown/timeout (as a diagnostic next step) and whenever embedded.
-          showLink: diag.kind === "policy-blocked" || diag.kind === "host-frame-blocked" || diag.kind === "no-api" || diag.kind === "unknown" || diag.kind === "timeout" || isEmbedded(),
-          // GitHub Pages link area: shown for the two host-frame block cases.
-          showPages: diag.kind === "policy-blocked" || diag.kind === "host-frame-blocked"
-        });
-        toast(diag.title + "（详见页面步骤日志）", 4200);
+        camNote.classList.add("on");
       }
 
-      /* 识别失败：摄像头预览保持运行，只报告识别这一步 */
-      function recogFail(stepIdx, err, phase) {
+      /* 识别失败：摄像头预览保持运行，仅在预览角标里低调提示 */
+      function recogFail(stepIdx, err) {
         recogRunning = false;
         recogFailed = true;
-        var diag = diagnoseCamError(err, phase);
-        var detail = (err && err.name ? err.name + "：" : "") + ((err && err.message) || err || diag.title);
-        setStep(stepIdx, "fail", "失败在步骤" + (stepIdx + 1) + "（" + STEP_NAMES[stepIdx] + "）：" + detail);
-        camStatus.textContent = "摄像头已开 · 识别库加载失败";
-        showCamHelp("摄像头已打开，识别库加载失败",
-          diag.detail + " 具体错误：" + detail,
-          { showLink: false, showRetry: true });
-        toast("摄像头已打开，识别库加载失败：" + detail, 5200);
+        console.warn("[gesture] recognition unavailable:", err);
+        camStatus.textContent = "摄像头已开 · 识别暂不可用";
       }
 
       /* 识别链：与摄像头完全解耦，失败不影响预览 */
@@ -2643,8 +2130,6 @@
         if (handsObj) { // 已初始化过，直接恢复送帧
           recogRunning = true;
           recogFailed = false;
-          setStep(3, "ok", "识别库已加载");
-          setStep(4, "ok", "识别已就绪");
           camStatus.textContent = "当前手势：无";
           camLoop();
           return;
@@ -2652,11 +2137,8 @@
         recogRunning = true;
         recogFailed = false;
         sendFailCount = 0;
-        setStep(3, "run", "正在加载识别库脚本 + 模型文件（jsDelivr / unpkg 自动切换）…");
         loadHandsWithFallback().then(function (base) {
           if (!camOn) { recogRunning = false; return; }
-          setStep(3, "ok", "识别库已加载，来源：" + base);
-          setStep(4, "run", "正在初始化模型 / WASM…");
           try {
             handsObj = new window.Hands({
               locateFile: function (f) { return (handsBase || base) + "/" + f; }
@@ -2676,9 +2158,7 @@
             ? handsObj.initialize() : Promise.resolve();
           withTimeout(initP, 30000, "Hands.initialize (WASM/模型)").then(function () {
             if (!camOn) { recogRunning = false; return; }
-            setStep(4, "ok", "识别已就绪，把手放到镜头前试试");
             camStatus.textContent = "当前手势：无";
-            toast("手势识别已就绪：张手散开 · 握拳成树 · 捏合看照片");
             camLoop();
           }).catch(function (e) { recogFail(4, e, "hands-init"); });
         }).catch(function (e) { recogFail(3, e, "hands-load"); });
@@ -2693,47 +2173,19 @@
           return Promise.reject(syncErr);
         }
       }
+      /* 页面加载即自动启动：getUserMedia 是第一个异步调用（最简参数，
+         兼容性优先），预览先行显示，识别库随后异步加载；
+         任何失败都静默落到仅观看模式，不弹面板、不留按钮 */
       function startCamera() {
         if (camOn || camStarting) return;
-        // 步骤0：同步执行，证明点击处理真的跑了（按钮文字立刻变）
-        resetSteps();
-        setStep(0, "ok", "已收到点击，开始启动");
-        hideCamHelp();
-        btnCam.textContent = "正在请求摄像头…";
-        var envLine = envDiagnostic();
-        console.log("[gesture] " + envLine);
-        // 接口根本不存在：非 HTTPS / 过旧浏览器 / WebView 禁用（只报实际值，不臆断原因）
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          var noApiErr = new Error("navigator.mediaDevices.getUserMedia unavailable");
-          noApiErr.name = "NotSupportedError";
-          setStep(1, "fail", "失败在步骤2（请求摄像头）：原始错误 " + rawErrorText(noApiErr) + " | " + envLine);
-          failCamera(diagnoseCamError(noApiErr, "no-api"), noApiErr);
+          camNote.classList.add("on");
           return;
         }
         camStarting = true;
-        btnCam.disabled = true;
-        // Prompt tracking starts now (synchronously, before the request):
-        // stamp the call time and snapshot the camera permission state.
-        // Fire-and-forget: never delays the getUserMedia call itself.
-        gumStartedAt = performance.now();
-        gumPermBefore = "unknown"; gumPermAfter = "unknown";
-        if (navigator.permissions && navigator.permissions.query) {
-          try {
-            navigator.permissions.query({ name: "camera" }).then(function (st) {
-              if (gumPermBefore === "unknown") gumPermBefore = st.state;
-            }).catch(function () {});
-          } catch (e) {}
-        }
-        setStep(1, "run", envLine + " · 正在请求摄像头（最简参数，等待浏览器授权）…");
-        // 关键：getUserMedia 是启动链里的第一个异步调用，紧贴点击手势，
-        // 在它完成、预览显示之前，不加载任何识别库脚本。
-        // 兼容性优先：第一次只用 {video:true, audio:false}，不带 facingMode/宽高，
-        // 避免 Safari / 部分 Edge 因约束不满足直接 OverconstrainedError。
         var gumPromise = gumAttempt({ video: true, audio: false }).catch(function (firstErr) {
           var n = (firstErr && firstErr.name) || "";
           if (n === "OverconstrainedError" || n === "NotFoundError" || n === "DevicesNotFoundError") {
-            console.warn("[gesture] step2 first attempt failed, retrying {video:true}: " + rawErrorText(firstErr));
-            setStep(1, "run", envLine + " · 首次请求失败（原始错误 " + rawErrorText(firstErr) + "），正在用 {video:true} 重试…");
             return gumAttempt({ video: true });
           }
           throw firstErr;
@@ -2744,30 +2196,22 @@
         }, function () {});
         withTimeout(gumPromise, 20000, "getUserMedia").then(function (stream) {
           mediaStream = stream;
-          setStep(1, "ok", "已拿到摄像头画面流");
-          setStep(2, "run", "正在启动预览播放…");
           camVideo.srcObject = stream;
           var playP;
           try { playP = camVideo.play(); } catch (e) { playP = null; }
-          return Promise.resolve(playP).catch(function (e) {
-            console.warn("[gesture] video.play() rejected, preview element still bound:", e);
-          });
+          return Promise.resolve(playP).catch(function () {});
         }).then(function () {
           if (!mediaStream) return;
           // 预览先行：到这里摄像头就算完全打开，识别库之后再异步加载
           camOn = true;
           camStarting = false;
-          btnCam.disabled = false;
-          btnCam.textContent = "关闭摄像头";
           camWrap.classList.add("on");
           camWrap.setAttribute("aria-hidden", "false");
-          camStatus.textContent = "摄像头已开 · 正在加载手势识别…";
-          setStep(2, "ok", "预览已显示（右下角小窗）");
+          camStatus.textContent = "当前手势：无";
           gCandidate = "none"; gCommitted = "none";
-          toast("摄像头已打开，正在加载手势识别…");
           startRecognition();
         }).catch(function (err) {
-          failCamera(diagnoseCamError(err, "camera"), err);
+          failCamera(err);
         });
       }
 
@@ -2776,10 +2220,7 @@
         camStarting = false;
         recogRunning = false;
         sendBusy = false;
-        btnCam.disabled = false;
         cancelAnimationFrame(camRAF);
-        resetSteps();
-        camStepsEl.classList.remove("on");
         if (mediaStream) {
           mediaStream.getTracks().forEach(function (t) { t.stop(); });
           mediaStream = null;
@@ -2787,16 +2228,13 @@
         camVideo.srcObject = null;
         camWrap.classList.remove("on");
         camWrap.setAttribute("aria-hidden", "true");
-        btnCam.textContent = "开启摄像头手势";
         handPresent = false;
         handYawTarget = 0;
         handPitchTarget = 0;
         gCommitted = "none";
       }
-      btnCam.addEventListener("click", function () {
-        if (camOn) stopCamera();
-        else startCamera();
-      });
+      // 打开页面就申请摄像头权限，与形成动画并行，无需任何点击
+      startCamera();
 
       initDefaultPhotos();
       // Async, non-blocking: try to replace festival cards with built-in
